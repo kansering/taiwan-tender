@@ -2,14 +2,6 @@
 
 > 純前端、零後端、一個 HTML 檔案，部署到 GitHub Pages 即可使用。
 
-## 線上展示
-
-```
-https://你的帳號.github.io/taiwan-tender/
-```
-
----
-
 ## 功能
 
 ### 📊 總覽儀表板
@@ -48,45 +40,9 @@ https://你的帳號.github.io/taiwan-tender/
 
 | 項目 | 說明 |
 |------|------|
-| API | `pcc-api.openfun.app`（g0v 社群維護，CORS 開放） |
+| API  | `pcc-api.openfun.app`（g0v 社群維護，CORS 開放） |
 | 原始資料 | 行政院公共工程委員會 `web.pcc.gov.tw` |
 | 授權 | 遵循公共工程委員會著作權聲明，查詢參考用途 |
-
----
-
-## 部署到 GitHub Pages
-
-**步驟一：建立 Repository**
-
-```
-GitHub → New repository → 名稱如 taiwan-tender → Create
-```
-
-**步驟二：上傳檔案**
-
-把 `index.html` 和 `README.md` 上傳到 repo 根目錄。
-
-**步驟三：開啟 Pages**
-
-```
-Settings → Pages → Source → Deploy from a branch → main / root → Save
-```
-
-**步驟四：等待約 1 分鐘**
-
-網址格式：`https://你的帳號.github.io/taiwan-tender/`
-
----
-
-## 本地開發
-
-```bash
-# 用 Python 起本地伺服器
-python3 -m http.server 8080
-
-# 開啟瀏覽器
-open http://localhost:8080
-```
 
 ---
 
