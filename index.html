@@ -3,708 +3,1189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>台灣政府標案查詢系統</title>
+<title>台灣標案查詢系統</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy:#0F2040; --navy-mid:#1A3358; --blue:#2563EB; --blue-light:#3B82F6;
-    --blue-dim:#EFF6FF; --green:#059669; --green-dim:#ECFDF5;
-    --amber:#D97706; --amber-dim:#FFFBEB; --red:#DC2626; --red-dim:#FEF2F2;
-    --gray-50:#F8FAFC; --gray-100:#F1F5F9; --gray-200:#E2E8F0;
-    --gray-400:#94A3B8; --gray-500:#64748B; --gray-700:#334155;
-    --gray-900:#0F172A; --white:#FFFFFF;
-    --radius:8px;
-    --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
-    --shadow-md:0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.06);
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;}
+:root{
+  --navy:#0D1B2A;--sidebar-bg:#1A2B3C;--sidebar-w:48px;
+  --blue:#1D6FEB;--blue-light:#4589F5;--blue-dim:#EBF2FF;
+  --green:#0A9163;--green-dim:#E6F7F2;
+  --amber:#C97D0A;--amber-dim:#FEF6E4;
+  --red:#D63030;--red-dim:#FEF0F0;
+  --gray-50:#F7F9FC;--gray-100:#EEF2F7;--gray-200:#DDE4EE;
+  --gray-300:#C5CFE0;--gray-400:#9DAEC4;--gray-500:#6B7E99;
+  --gray-700:#374860;--gray-900:#0D1B2A;
+  --white:#FFFFFF;--radius:8px;
+  --shadow:0 1px 3px rgba(13,27,42,.08),0 1px 2px rgba(13,27,42,.05);
+  --shadow-md:0 4px 12px rgba(13,27,42,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;background:var(--gray-50);color:var(--gray-900);display:flex;height:100vh;overflow:hidden;}
 
-  /* Header */
-  header{background:var(--navy);color:white;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3);}
-  .header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;height:58px;}
-  .logo{font-size:14px;font-weight:700;color:white;white-space:nowrap;letter-spacing:-.3px;}
-  .logo span{color:#60A5FA;}
-  .search-wrap{flex:1;position:relative;max-width:480px;}
-  .search-wrap input{width:100%;padding:8px 14px 8px 36px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:white;font-size:13px;font-family:inherit;outline:none;transition:background .15s,border-color .15s;}
-  .search-wrap input::placeholder{color:rgba(255,255,255,.45);}
-  .search-wrap input:focus{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.5);}
-  .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.45);pointer-events:none;}
-  .search-btn{padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;white-space:nowrap;}
-  .search-btn:hover{background:var(--blue-light);}
-  .nav-tabs{display:flex;gap:2px;margin-left:auto;}
-  .nav-tab{padding:5px 11px;border:none;background:transparent;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;border-radius:5px;transition:all .15s;white-space:nowrap;}
-  .nav-tab:hover{background:rgba(255,255,255,.1);color:white;}
-  .nav-tab.active{background:rgba(255,255,255,.15);color:white;}
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;flex-shrink:0;z-index:200;}
+.sb-logo{width:32px;height:32px;background:linear-gradient(135deg,#1D6FEB,#0A9163);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px;margin-bottom:8px;cursor:pointer;text-decoration:none;}
+.sb-btn{width:36px;height:36px;border:none;background:transparent;color:rgba(255,255,255,.45);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .15s;position:relative;font-family:inherit;}
+.sb-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);}
+.sb-btn.active{background:rgba(29,111,235,.25);color:#60A5FA;}
+.sb-btn .sb-icon{font-size:16px;line-height:1;}
+.sb-btn .sb-label{font-size:9px;font-weight:600;line-height:1;}
+.sb-divider{width:24px;height:1px;background:rgba(255,255,255,.1);margin:4px 0;}
 
-  /* Filter bar */
-  .filter-bar{background:white;border-bottom:1px solid var(--gray-200);padding:8px 20px;position:sticky;top:58px;z-index:90;}
-  .filter-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .filter-label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
-  .filter-select,.filter-input{padding:5px 9px;border:1px solid var(--gray-200);border-radius:5px;font-size:12px;font-family:inherit;color:var(--gray-700);background:var(--gray-50);cursor:pointer;outline:none;transition:border-color .15s;}
-  .filter-input{width:130px;cursor:text;}
-  .filter-select:focus,.filter-input:focus{border-color:var(--blue);}
-  .filter-apply{padding:5px 12px;background:var(--navy);color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;}
-  .filter-apply:hover{background:var(--navy-mid);}
-  .filter-clear{padding:5px 10px;background:transparent;color:var(--gray-500);border:1px solid var(--gray-200);border-radius:5px;font-size:12px;font-family:inherit;cursor:pointer;}
-  .filter-clear:hover{border-color:var(--gray-400);color:var(--gray-700);}
-  .kw-tags-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-left:6px;}
-  .kw-tag{display:flex;align-items:center;gap:3px;padding:3px 9px 3px 7px;background:var(--blue-dim);color:var(--blue);border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:background .15s;}
-  .kw-tag:hover{background:#DBEAFE;}
-  .kw-del{font-size:13px;line-height:1;opacity:.55;}
-  .kw-add-btn{padding:3px 9px;background:transparent;border:1px dashed #CBD5E1;border-radius:20px;font-size:11px;color:var(--gray-500);cursor:pointer;font-family:inherit;transition:all .15s;}
-  .kw-add-btn:hover{border-color:var(--blue);color:var(--blue);}
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
-  /* Main */
-  main{max-width:1200px;margin:0 auto;padding:16px 20px;}
-  .stats-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .stats-text{font-size:12px;color:var(--gray-500);}
-  .stats-text strong{color:var(--gray-900);}
+/* ── Topbar ── */
+.topbar{height:50px;background:white;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--gray-900);}
+.topbar-search{flex:1;max-width:480px;position:relative;}
+.topbar-search input{width:100%;padding:7px 12px 7px 34px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;font-family:inherit;outline:none;color:var(--gray-900);background:var(--gray-50);transition:border-color .15s;}
+.topbar-search input:focus{border-color:var(--blue);background:white;}
+.topbar-search .ts-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:13px;}
+.topbar-search .ts-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:3px 10px;background:var(--blue);color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;}
+.topbar-date{font-size:12px;color:var(--gray-500);margin-left:auto;white-space:nowrap;}
 
-  /* Cards */
-  .results-list{display:flex;flex-direction:column;gap:7px;}
-  .card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
-  .card:hover{box-shadow:var(--shadow-md);border-color:#CBD5E1;}
-  .card-stripe{width:4px;border-radius:4px;flex-shrink:0;align-self:stretch;min-height:54px;}
-  .stripe-tender{background:var(--blue);}
-  .stripe-award{background:var(--green);}
-  .stripe-noaward{background:var(--gray-400);}
-  .stripe-other{background:var(--amber);}
-  .card-body{flex:1;min-width:0;}
-  .card-top{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;flex-wrap:wrap;}
-  .card-title{font-size:14px;font-weight:600;color:var(--gray-900);flex:1;line-height:1.4;min-width:180px;}
-  .card-title mark{background:#FEF9C3;color:inherit;border-radius:2px;padding:0 1px;}
-  .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;}
-  .badge-tender{background:var(--blue-dim);color:var(--blue);}
-  .badge-award{background:var(--green-dim);color:var(--green);}
-  .badge-noaward{background:var(--gray-100);color:var(--gray-500);}
-  .badge-other{background:var(--amber-dim);color:var(--amber);}
-  .card-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--gray-500);}
-  .meta-item{display:flex;align-items:center;gap:3px;}
-  .meta-item strong{color:var(--gray-700);font-weight:500;}
-  .card-budget{text-align:right;flex-shrink:0;}
-  .budget-amount{font-size:14px;font-weight:700;color:var(--navy);}
-  .budget-label{font-size:10px;color:var(--gray-400);margin-top:1px;}
+/* ── Content Area ── */
+.content{flex:1;overflow-y:auto;padding:20px;}
 
-  /* Skeleton */
-  .skeleton-list{display:flex;flex-direction:column;gap:7px;}
-  .skeleton-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;}
-  .sk{background:var(--gray-100);border-radius:4px;animation:shimmer 1.4s infinite;}
-  .sk-stripe{width:4px;border-radius:4px;align-self:stretch;min-height:54px;}
-  .sk-line{height:13px;margin-bottom:7px;}
-  .sk-w80{width:80%;} .sk-w50{width:50%;} .sk-w30{width:30%;}
-  @keyframes shimmer{0%,100%{opacity:.6;}50%{opacity:1;}}
+/* ── Page visibility ── */
+.page{display:none;}
+.page.active{display:block;}
 
-  /* Pagination */
-  .pagination{display:flex;justify-content:center;gap:5px;margin-top:20px;flex-wrap:wrap;}
-  .pg-btn{padding:6px 11px;border:1px solid var(--gray-200);background:white;border-radius:5px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--gray-700);transition:all .15s;min-width:34px;text-align:center;}
-  .pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
-  .pg-btn.active{background:var(--navy);border-color:var(--navy);color:white;font-weight:600;}
-  .pg-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .pg-ellipsis{padding:6px 3px;color:var(--gray-400);font-size:12px;align-self:center;}
+/* ====== DASHBOARD ====== */
+.dash-banner{background:linear-gradient(135deg,#0D4FA0 0%,#1D6FEB 60%,#0A9163 100%);border-radius:12px;padding:22px 28px;margin-bottom:20px;color:white;display:flex;align-items:center;justify-content:space-between;}
+.dash-banner-text h2{font-size:20px;font-weight:800;margin-bottom:8px;}
+.dash-banner-text p{font-size:13px;opacity:.85;line-height:1.6;}
+.dash-banner-text p::before{content:"✅ ";}
+.dash-banner-text p+p{margin-top:3px;}
 
-  /* Detail Modal (slide-in panel) */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;}
-  .modal{background:white;width:560px;max-width:100vw;height:100vh;overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,.15);animation:slideIn .2s ease;}
-  @keyframes slideIn{from{transform:translateX(40px);opacity:0;}to{transform:translateX(0);opacity:1;}}
-  .modal-header{position:sticky;top:0;background:var(--navy);color:white;padding:14px 18px;display:flex;align-items:flex-start;gap:10px;z-index:10;}
-  .modal-title{flex:1;font-size:14px;font-weight:600;line-height:1.4;}
-  .modal-close{background:rgba(255,255,255,.15);border:none;color:white;width:26px;height:26px;border-radius:5px;cursor:pointer;font-size:15px;flex-shrink:0;transition:background .15s;display:flex;align-items:center;justify-content:center;}
-  .modal-close:hover{background:rgba(255,255,255,.25);}
-  .modal-body{padding:18px;}
-  .detail-section{margin-bottom:18px;}
-  .detail-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--gray-100);}
-  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .detail-item{grid-column:span 1;}
-  .detail-item.full{grid-column:span 2;}
-  .detail-key{font-size:10px;color:var(--gray-400);margin-bottom:2px;font-weight:500;}
-  .detail-val{font-size:13px;color:var(--gray-900);font-weight:500;word-break:break-all;line-height:1.4;}
-  .detail-amount{font-size:17px;font-weight:700;color:var(--navy);}
-  .detail-link{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:7px 14px;background:var(--blue);color:white;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:background .15s;}
-  .detail-link:hover{background:var(--blue-light);}
-  .detail-download-link{display:inline-flex;align-items:center;gap:5px;margin-top:6px;margin-left:8px;padding:7px 14px;background:var(--green);color:white;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;}
-  .companies-list{display:flex;flex-direction:column;gap:5px;}
-  .company-row{padding:9px 11px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--green);}
-  .company-row.loser{border-left-color:var(--gray-300,#CBD5E1);}
-  .company-name{font-size:13px;font-weight:600;color:var(--gray-900);}
-  .company-amount{font-size:11px;color:var(--green);font-weight:600;margin-top:2px;}
-  .company-addr{font-size:11px;color:var(--gray-500);margin-top:1px;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+.stat-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:12px;}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.si-blue{background:var(--blue-dim);}
+.si-green{background:var(--green-dim);}
+.si-amber{background:var(--amber-dim);}
+.si-red{background:var(--red-dim);}
+.stat-info .stat-label{font-size:11px;color:var(--gray-500);font-weight:500;margin-bottom:3px;}
+.stat-info .stat-num{font-size:22px;font-weight:800;color:var(--gray-900);line-height:1;}
+.stat-info .stat-unit{font-size:12px;color:var(--gray-500);margin-left:3px;font-weight:400;}
 
-  /* History tabs */
-  .history-list{display:flex;flex-direction:column;gap:5px;}
-  .history-row{padding:8px 11px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--blue);cursor:pointer;}
-  .history-row:hover{background:var(--blue-dim);}
-  .history-type{font-size:12px;font-weight:600;color:var(--gray-700);}
-  .history-date{font-size:11px;color:var(--gray-500);margin-top:1px;}
+.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.week-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;}
+.week-card-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gray-100);}
+.week-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.wd-green{background:#22C55E;}
+.wd-blue{background:#3B82F6;}
+.wd-amber{background:#F59E0B;}
+.week-card-header .wc-title{font-size:13px;font-weight:600;color:var(--gray-700);}
+.week-card-header .wc-count{font-size:18px;font-weight:800;color:var(--gray-900);margin-left:auto;}
+.week-list{padding:4px 0;}
+.week-item{padding:9px 16px;border-bottom:1px solid var(--gray-50);cursor:pointer;transition:background .1s;}
+.week-item:hover{background:var(--gray-50);}
+.week-item:last-child{border-bottom:none;}
+.wi-title{font-size:12px;color:var(--gray-900);font-weight:500;line-height:1.4;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wi-meta{display:flex;gap:8px;font-size:11px;color:var(--gray-500);}
+.wi-badge{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+.wib-green{background:var(--green-dim);color:var(--green);}
+.wib-blue{background:var(--blue-dim);color:var(--blue);}
+.wib-amber{background:var(--amber-dim);color:var(--amber);}
 
-  /* Empty/Error */
-  .empty-state{text-align:center;padding:50px 20px;color:var(--gray-400);}
-  .empty-state .icon{font-size:42px;margin-bottom:10px;}
-  .empty-state h3{font-size:15px;color:var(--gray-500);margin-bottom:5px;}
-  .empty-state p{font-size:12px;}
+/* ====== TENDER/AWARD LIST PAGE ====== */
+.list-layout{display:flex;gap:0;height:100%;min-height:calc(100vh - 90px);}
 
-  /* Toast */
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--gray-900);color:white;padding:9px 14px;border-radius:6px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;}
-  .toast.show{opacity:1;}
+.filter-panel{width:200px;flex-shrink:0;background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px;margin-right:16px;align-self:flex-start;position:sticky;top:0;}
+.fp-clear{width:100%;padding:7px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:14px;color:var(--gray-700);display:flex;align-items:center;justify-content:center;gap:5px;}
+.fp-clear:hover{background:var(--gray-200);}
+.fp-section{margin-bottom:14px;}
+.fp-section-title{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.fp-item{display:flex;align-items:center;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--gray-700);transition:background .1s;white-space:nowrap;}
+.fp-item:hover{background:var(--gray-100);}
+.fp-item.active{background:var(--blue-dim);color:var(--blue);font-weight:600;}
+.fp-item .fp-count{margin-left:auto;font-size:10px;color:var(--gray-400);}
+.fp-item.active .fp-count{color:var(--blue-light);}
 
-  /* Keyword modal */
-  .kw-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2000;display:flex;align-items:center;justify-content:center;}
-  .kw-modal{background:white;border-radius:10px;padding:22px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,.15);}
-  .kw-modal h3{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--gray-900);}
-  .kw-modal p{font-size:11px;color:var(--gray-500);margin-bottom:12px;}
-  .kw-modal input{width:100%;padding:9px 11px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;font-family:inherit;outline:none;margin-bottom:11px;}
-  .kw-modal input:focus{border-color:var(--blue);}
-  .kw-modal-btns{display:flex;gap:7px;justify-content:flex-end;}
-  .kw-cancel{padding:7px 14px;background:transparent;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--gray-500);}
-  .kw-save{padding:7px 14px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;}
+.list-main{flex:1;min-width:0;}
+.list-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.list-title{font-size:18px;font-weight:800;color:var(--gray-900);}
+.list-count{font-size:14px;font-weight:700;color:var(--red);}
+.list-total{font-size:12px;color:var(--gray-500);}
+.quick-filter-btn{padding:5px 10px;border-radius:5px;border:1px solid var(--gray-200);background:white;font-size:12px;font-family:inherit;cursor:pointer;color:var(--gray-700);display:flex;align-items:center;gap:4px;transition:all .15s;}
+.quick-filter-btn:hover{border-color:var(--blue);color:var(--blue);}
 
-  @media(max-width:768px){
-    .nav-tabs{display:none;}
-    .search-wrap{max-width:none;}
-    main{padding:12px;}
-    .filter-bar{padding:8px 12px;top:58px;}
-    .card{padding:11px 12px;}
-    .card-budget{display:none;}
-    .modal{width:100vw;}
-    .detail-grid{grid-template-columns:1fr;}
-    .detail-item.full{grid-column:span 1;}
-  }
+.list-search-bar{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.lsb-logo{font-size:13px;font-weight:800;color:var(--blue);}
+.lsb-input{flex:1;border:none;outline:none;font-size:13px;font-family:inherit;color:var(--gray-900);}
+.lsb-input::placeholder{color:var(--gray-400);}
+.lsb-btn{padding:6px 16px;background:var(--blue);color:white;border:none;border-radius:5px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;}
+
+/* Table */
+.tender-table{width:100%;background:white;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;border-collapse:collapse;}
+.tender-table th{background:var(--gray-50);padding:9px 12px;font-size:11px;font-weight:700;color:var(--gray-500);text-align:left;border-bottom:1px solid var(--gray-200);white-space:nowrap;}
+.tender-table th.sortable{cursor:pointer;user-select:none;}
+.tender-table th.sortable:hover{color:var(--blue);}
+.tender-table td{padding:10px 12px;font-size:12px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);vertical-align:top;}
+.tender-table tr:last-child td{border-bottom:none;}
+.tender-table tr:hover td{background:var(--gray-50);}
+.td-title{font-weight:500;color:var(--gray-900);cursor:pointer;line-height:1.4;}
+.td-title:hover{color:var(--blue);}
+.td-unit{color:var(--gray-600,#4B5E7A);font-size:11px;}
+.td-deadline{color:var(--blue);font-weight:600;}
+.td-budget{font-weight:600;color:var(--gray-900);white-space:nowrap;}
+.td-method-badge{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600;white-space:nowrap;}
+.tmb-open{background:var(--blue-dim);color:var(--blue);}
+.tmb-limited{background:var(--amber-dim);color:var(--amber);}
+.tmb-price{background:var(--green-dim);color:var(--green);}
+.td-cat{font-size:11px;color:var(--gray-500);}
+.td-award-amount{font-weight:700;color:var(--green);}
+
+/* pagination */
+.table-pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:white;border:1px solid var(--gray-200);border-top:none;border-radius:0 0 var(--radius) var(--radius);}
+.tp-info{font-size:12px;color:var(--gray-500);}
+.tp-btns{display:flex;gap:4px;align-items:center;}
+.tp-btn{padding:4px 9px;border:1px solid var(--gray-200);background:white;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--gray-700);transition:all .12s;min-width:30px;text-align:center;}
+.tp-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+.tp-btn.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:600;}
+.tp-btn:disabled{opacity:.35;cursor:not-allowed;}
+.tp-jump{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-500);}
+.tp-jump input{width:48px;padding:3px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:12px;text-align:center;font-family:inherit;outline:none;}
+.tp-jump input:focus{border-color:var(--blue);}
+.tp-jump button{padding:3px 8px;background:var(--navy);color:white;border:none;border-radius:4px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;}
+
+/* ====== RESERVE PRICE ANALYSIS ====== */
+.analysis-search-bar{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.asb-logo{font-size:13px;font-weight:800;color:var(--blue);}
+.asb-input{flex:1;border:none;outline:none;font-size:14px;font-family:inherit;color:var(--gray-900);}
+.asb-input::placeholder{color:var(--gray-400);}
+.asb-btn{padding:8px 20px;background:var(--blue);color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+
+.hot-orgs{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:18px 20px;}
+.hot-orgs h3{font-size:13px;font-weight:600;color:var(--gray-500);margin-bottom:14px;}
+.hot-org-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.hot-org-btn{padding:8px 10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:500;color:var(--gray-700);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;}
+.hot-org-btn:hover{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+/* Reserve Price Results */
+.rp-result{margin-top:20px;}
+.rp-result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.rp-result-title{font-size:16px;font-weight:700;}
+.rp-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.rp-stat{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:12px 14px;}
+.rp-stat .rs-label{font-size:11px;color:var(--gray-500);margin-bottom:3px;}
+.rp-stat .rs-val{font-size:18px;font-weight:800;color:var(--gray-900);}
+.rp-stat .rs-sub{font-size:11px;color:var(--gray-400);margin-top:1px;}
+
+/* Chart area */
+.rp-chart-area{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+.rp-chart-title{font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+.bar-chart{display:flex;flex-direction:column;gap:6px;}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.bar-label{width:200px;color:var(--gray-700);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;cursor:pointer;}
+.bar-label:hover{color:var(--blue);}
+.bar-track{flex:1;height:18px;background:var(--gray-100);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:600;color:white;transition:width .4s ease;}
+.bar-fill-blue{background:linear-gradient(90deg,#1D6FEB,#4589F5);}
+.bar-fill-green{background:linear-gradient(90deg,#0A9163,#22C55E);}
+.bar-meta{width:80px;text-align:right;color:var(--gray-500);font-size:10px;flex-shrink:0;}
+
+.rp-table{width:100%;background:white;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;border-collapse:collapse;}
+.rp-table th{background:var(--gray-50);padding:9px 12px;font-size:11px;font-weight:700;color:var(--gray-500);text-align:left;border-bottom:1px solid var(--gray-200);}
+.rp-table td{padding:9px 12px;font-size:12px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);}
+.rp-table tr:last-child td{border-bottom:none;}
+.rp-table tr:hover td{background:var(--gray-50);}
+.ratio-good{color:var(--green);font-weight:600;}
+.ratio-warn{color:var(--amber);font-weight:600;}
+.ratio-bad{color:var(--red);font-weight:600;}
+
+/* ====== VENDOR ANALYSIS ====== */
+.va-empty{text-align:center;padding:50px 20px;color:var(--gray-400);}
+.va-empty .va-icon{font-size:48px;margin-bottom:12px;}
+.va-empty h3{font-size:15px;color:var(--gray-500);margin-bottom:5px;}
+.va-empty p{font-size:12px;}
+.hot-vendor-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.hot-vendor-btn{padding:10px 12px;background:white;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:500;color:var(--gray-700);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;line-height:1.3;}
+.hot-vendor-btn:hover{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+.va-result-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.va-result-title{font-size:16px;font-weight:700;}
+.va-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+
+.va-section{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);margin-bottom:14px;}
+.va-section-head{padding:12px 16px;border-bottom:1px solid var(--gray-100);font-size:12px;font-weight:700;color:var(--gray-700);}
+.va-section-body{padding:14px 16px;}
+
+/* Detail Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,27,42,.5);z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;}
+.modal-panel{background:white;width:580px;max-width:100vw;height:100vh;overflow-y:auto;box-shadow:-6px 0 32px rgba(13,27,42,.15);animation:slideIn .18s ease;}
+@keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+.modal-head{position:sticky;top:0;background:var(--navy);color:white;padding:14px 18px;display:flex;gap:10px;z-index:10;align-items:flex-start;}
+.modal-head-title{flex:1;font-size:14px;font-weight:600;line-height:1.4;}
+.modal-x{background:rgba(255,255,255,.12);border:none;color:white;width:26px;height:26px;border-radius:5px;cursor:pointer;flex-shrink:0;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.modal-x:hover{background:rgba(255,255,255,.22);}
+.modal-body{padding:18px;}
+.msec{margin-bottom:16px;}
+.msec-title{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--gray-100);}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.mitem{grid-column:span 1;}
+.mitem.full{grid-column:span 2;}
+.mkey{font-size:10px;color:var(--gray-400);margin-bottom:2px;font-weight:500;}
+.mval{font-size:12px;color:var(--gray-900);font-weight:500;word-break:break-all;line-height:1.4;}
+.mval-big{font-size:17px;font-weight:800;color:var(--navy);}
+.clist{display:flex;flex-direction:column;gap:5px;}
+.crow{padding:9px 11px;background:var(--gray-50);border-radius:6px;border-left:3px solid var(--green);}
+.crow.loser{border-left-color:var(--gray-300);}
+.cname{font-size:13px;font-weight:600;color:var(--gray-900);}
+.camount{font-size:11px;color:var(--green);font-weight:600;margin-top:2px;}
+.caddr{font-size:11px;color:var(--gray-500);margin-top:1px;}
+.modal-link{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:7px 14px;background:var(--blue);color:white;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:background .12s;}
+.modal-link:hover{background:var(--blue-light);}
+.modal-link-dl{background:var(--green);margin-left:6px;}
+.modal-link-dl:hover{background:#0CB87A;}
+
+/* Skeleton */
+.sk{background:var(--gray-100);border-radius:4px;animation:shimmer 1.4s infinite;}
+@keyframes shimmer{0%,100%{opacity:.6}50%{opacity:1}}
+.sk-line{height:13px;margin-bottom:6px;}
+.sk-w90{width:90%}.sk-w70{width:70%}.sk-w40{width:40%}
+
+/* Loading state */
+.loading-overlay{display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:10px;color:var(--gray-400);}
+.spinner{width:28px;height:28px;border:3px solid var(--gray-200);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Empty state */
+.empty{text-align:center;padding:50px 20px;color:var(--gray-400);}
+.empty .ei{font-size:40px;margin-bottom:10px;}
+.empty h3{font-size:14px;color:var(--gray-500);margin-bottom:4px;}
+.empty p{font-size:12px;}
+
+/* Toast */
+.toast{position:fixed;bottom:18px;right:18px;background:var(--gray-900);color:white;padding:9px 14px;border-radius:6px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+@media(max-width:900px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .week-grid{grid-template-columns:1fr;}
+  .hot-org-grid{grid-template-columns:repeat(3,1fr);}
+  .hot-vendor-grid{grid-template-columns:repeat(3,1fr);}
+  .filter-panel{display:none;}
+  .modal-panel{width:100vw;}
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="logo">🏛️ 台灣<span>標案</span>查詢</div>
-    <div class="search-wrap">
-      <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="searchInput" type="text" placeholder="輸入關鍵字..." autocomplete="off">
-    </div>
-    <button class="search-btn" id="searchBtn">搜尋</button>
-    <div class="nav-tabs">
-      <button class="nav-tab active" data-mode="keyword">🔍 關鍵字</button>
-      <button class="nav-tab" data-mode="unit">🏛️ 機關</button>
-      <button class="nav-tab" data-mode="date">📅 日期</button>
-      <button class="nav-tab" data-mode="company">🏢 廠商</button>
-    </div>
-  </div>
-</header>
+<!-- Sidebar -->
+<nav class="sidebar">
+  <a class="sb-logo" href="/" title="台灣標案查詢首頁">標</a>
+  <button class="sb-btn active" data-page="dashboard"><span class="sb-icon">⊞</span><span class="sb-label">總覽</span></button>
+  <button class="sb-btn" data-page="tender"><span class="sb-icon">📋</span><span class="sb-label">招標</span></button>
+  <button class="sb-btn" data-page="award"><span class="sb-icon">✅</span><span class="sb-label">決標</span></button>
+  <div class="sb-divider"></div>
+  <button class="sb-btn" data-page="reserve"><span class="sb-icon">💰</span><span class="sb-label">底價</span></button>
+  <button class="sb-btn" data-page="vendor"><span class="sb-icon">🏢</span><span class="sb-label">廠商</span></button>
+</nav>
 
-<div class="filter-bar">
-  <div class="filter-inner">
-    <span class="filter-label">篩選</span>
-    <select class="filter-select" id="typeFilter">
-      <option value="">全部類型</option>
-      <option value="招標">招標公告</option>
-      <option value="決標">決標公告</option>
-      <option value="無法決標">無法決標</option>
-      <option value="公開取得">公開取得報價單</option>
-      <option value="公開徵求">公開徵求</option>
-    </select>
-    <div class="kw-tags-row" id="keywordTags">
-      <span class="filter-label">常用</span>
-      <button class="kw-add-btn" id="addKwBtn">＋ 新增</button>
+<!-- Main Area -->
+<div class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">總覽儀表板</div>
+    <div class="topbar-search">
+      <span class="ts-icon">🔍</span>
+      <input id="topSearch" type="text" placeholder="搜尋案名、機關、廠商..." autocomplete="off">
+      <button class="ts-btn" id="topSearchBtn">搜尋</button>
     </div>
+    <div class="topbar-date" id="topDate"></div>
   </div>
-</div>
 
-<main>
-  <div class="stats-bar">
-    <div class="stats-text" id="statsText">輸入條件開始查詢</div>
-  </div>
-  <div id="resultContainer"></div>
-  <div class="pagination" id="pagination"></div>
-</main>
+  <!-- Content -->
+  <div class="content" id="content">
+
+    <!-- ═══ DASHBOARD PAGE ═══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="dash-banner">
+        <div class="dash-banner-text">
+          <h2>🏛️ 台灣標案查詢系統</h2>
+          <p>每日自動同步政府電子採購網，即時掌握最新標案</p>
+          <p>底價分析、廠商競爭情報、機關採購生態一站查詢</p>
+        </div>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><div class="stat-icon si-blue">📋</div><div class="stat-info"><div class="stat-label">今日招標</div><div class="stat-num" id="s-tender">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">✅</div><div class="stat-info"><div class="stat-label">今日決標</div><div class="stat-num" id="s-award">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-amber">🏢</div><div class="stat-info"><div class="stat-label">今日得標廠商</div><div class="stat-num" id="s-vendor">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-red">⚠️</div><div class="stat-info"><div class="stat-label">今日無法決標</div><div class="stat-num" id="s-noaward">—</div></div></div>
+      </div>
+      <div class="week-grid">
+        <div class="week-card">
+          <div class="week-card-header"><div class="week-dot wd-green"></div><div class="wc-title">本週最新招標</div><div class="wc-count" id="wc-tender">—</div></div>
+          <div class="week-list" id="wl-tender"><div class="loading-overlay"><div class="spinner"></div></div></div>
+        </div>
+        <div class="week-card">
+          <div class="week-card-header"><div class="week-dot wd-blue"></div><div class="wc-title">本週最新決標</div><div class="wc-count" id="wc-award">—</div></div>
+          <div class="week-list" id="wl-award"><div class="loading-overlay"><div class="spinner"></div></div></div>
+        </div>
+        <div class="week-card">
+          <div class="week-card-header"><div class="week-dot wd-amber"></div><div class="wc-title">最新得標廠商</div><div class="wc-count" id="wc-vendor">—</div></div>
+          <div class="week-list" id="wl-vendor"><div class="loading-overlay"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TENDER PAGE ═══ -->
+    <div class="page" id="page-tender">
+      <div class="list-layout">
+        <div class="filter-panel" id="fp-tender">
+          <button class="fp-clear" onclick="clearFilters('tender')">☰ 清除篩選</button>
+          <div class="fp-section">
+            <div class="fp-section-title">🕐 近期招標</div>
+            <div class="fp-item active" data-filter="date" data-val="today" onclick="setDateFilter(this,'tender')">今日</div>
+            <div class="fp-item" data-filter="date" data-val="week" onclick="setDateFilter(this,'tender')">本週 6/8~6/14</div>
+            <div class="fp-item" data-filter="date" data-val="w1" onclick="setDateFilter(this,'tender')">1週前 6/1~6/7</div>
+            <div class="fp-item" data-filter="date" data-val="w2" onclick="setDateFilter(this,'tender')">2週前 5/25~5/31</div>
+            <div class="fp-item" data-filter="date" data-val="w3" onclick="setDateFilter(this,'tender')">3週前 5/18~5/24</div>
+            <div class="fp-item" data-filter="date" data-val="w4" onclick="setDateFilter(this,'tender')">4週前 5/11~5/17</div>
+          </div>
+          <div class="fp-section">
+            <div class="fp-section-title">⚙️ 招標方式</div>
+            <div class="fp-item" data-filter="method" data-val="公開招標" onclick="setMethodFilter(this,'tender')">公開招標</div>
+            <div class="fp-item" data-filter="method" data-val="限制性招標" onclick="setMethodFilter(this,'tender')">限制性招標</div>
+            <div class="fp-item" data-filter="method" data-val="選擇性招標" onclick="setMethodFilter(this,'tender')">選擇性招標</div>
+          </div>
+          <div class="fp-section">
+            <div class="fp-section-title">📂 標的分類</div>
+            <div class="fp-item" data-filter="cat" data-val="工程" onclick="setCatFilter(this,'tender')">工程</div>
+            <div class="fp-item" data-filter="cat" data-val="財物" onclick="setCatFilter(this,'tender')">財物</div>
+            <div class="fp-item" data-filter="cat" data-val="勞務" onclick="setCatFilter(this,'tender')">勞務</div>
+          </div>
+        </div>
+        <div class="list-main">
+          <div class="list-header">
+            <div class="list-title">招標</div>
+            <div id="tender-count" class="list-count">—</div>
+            <div id="tender-range" class="list-total">筆資料</div>
+          </div>
+          <div class="list-search-bar">
+            <span class="lsb-logo">🔍 搜尋</span>
+            <input class="lsb-input" id="tenderSearch" type="text" placeholder="輸入案名、案號、機關 關鍵字">
+            <button class="lsb-btn" onclick="doListSearch('tender')">搜尋</button>
+          </div>
+          <div id="tender-table-wrap"></div>
+          <div class="table-pagination" id="tender-pagination" style="display:none">
+            <div class="tp-info" id="tender-pg-info"></div>
+            <div class="tp-btns" id="tender-pg-btns"></div>
+            <div class="tp-jump">跳頁<input type="number" id="tender-jump-input" min="1"><button onclick="jumpPage('tender')">跳</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ AWARD PAGE ═══ -->
+    <div class="page" id="page-award">
+      <div class="list-layout">
+        <div class="filter-panel" id="fp-award">
+          <button class="fp-clear" onclick="clearFilters('award')">☰ 清除篩選</button>
+          <div class="fp-section">
+            <div class="fp-section-title">🕐 近期決標</div>
+            <div class="fp-item active" data-filter="date" data-val="today" onclick="setDateFilter(this,'award')">今日</div>
+            <div class="fp-item" data-filter="date" data-val="week" onclick="setDateFilter(this,'award')">本週 6/8~6/14</div>
+            <div class="fp-item" data-filter="date" data-val="w1" onclick="setDateFilter(this,'award')">1週前 6/1~6/7</div>
+            <div class="fp-item" data-filter="date" data-val="w2" onclick="setDateFilter(this,'award')">2週前 5/25~5/31</div>
+            <div class="fp-item" data-filter="date" data-val="w3" onclick="setDateFilter(this,'award')">3週前 5/18~5/24</div>
+          </div>
+          <div class="fp-section">
+            <div class="fp-section-title">📂 標的分類</div>
+            <div class="fp-item" data-filter="cat" data-val="工程" onclick="setCatFilter(this,'award')">工程</div>
+            <div class="fp-item" data-filter="cat" data-val="財物" onclick="setCatFilter(this,'award')">財物</div>
+            <div class="fp-item" data-filter="cat" data-val="勞務" onclick="setCatFilter(this,'award')">勞務</div>
+          </div>
+        </div>
+        <div class="list-main">
+          <div class="list-header">
+            <div class="list-title">決標</div>
+            <div id="award-count" class="list-count">—</div>
+            <div id="award-range" class="list-total">筆資料</div>
+          </div>
+          <div class="list-search-bar">
+            <span class="lsb-logo">🔍 搜尋</span>
+            <input class="lsb-input" id="awardSearch" type="text" placeholder="輸入案名、案號、機關、廠商 關鍵字">
+            <button class="lsb-btn" onclick="doListSearch('award')">搜尋</button>
+          </div>
+          <div id="award-table-wrap"></div>
+          <div class="table-pagination" id="award-pagination" style="display:none">
+            <div class="tp-info" id="award-pg-info"></div>
+            <div class="tp-btns" id="award-pg-btns"></div>
+            <div class="tp-jump">跳頁<input type="number" id="award-jump-input" min="1"><button onclick="jumpPage('award')">跳</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RESERVE PRICE PAGE ═══ -->
+    <div class="page" id="page-reserve">
+      <div class="analysis-search-bar">
+        <span class="asb-logo">🔍 搜尋</span>
+        <input class="asb-input" id="reserveSearch" type="text" placeholder="搜尋 採購機關 底價（如：榮總、衛生福利部）">
+        <button class="asb-btn" onclick="doReserveSearch()">搜尋</button>
+      </div>
+      <div class="hot-orgs" id="reserveHotOrgs">
+        <h3>或從 熱門機關 開始</h3>
+        <div class="hot-org-grid" id="hotOrgGrid"></div>
+      </div>
+      <div id="reserveResult"></div>
+    </div>
+
+    <!-- ═══ VENDOR PAGE ═══ -->
+    <div class="page" id="page-vendor">
+      <div class="analysis-search-bar">
+        <span class="asb-logo">🔍 搜尋</span>
+        <input class="asb-input" id="vendorSearch" type="text" placeholder="輸入 對手公司（名稱或統編）">
+        <button class="asb-btn" onclick="doVendorSearch()">搜尋</button>
+      </div>
+      <div class="hot-orgs" id="vendorHotOrgs">
+        <h3>或從 熱門廠商 快速開始</h3>
+        <div class="hot-vendor-grid" id="hotVendorGrid"></div>
+      </div>
+      <div id="vendorResult"></div>
+    </div>
+
+  </div><!-- content -->
+</div><!-- main -->
 
 <!-- Detail Modal -->
-<div class="modal-overlay" id="modalOverlay" style="display:none;" onclick="handleOverlayClick(event)">
-  <div class="modal" id="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">載入中...</div>
-      <button class="modal-close" id="modalClose" onclick="closeModal()">✕</button>
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-head-title" id="mTitle">載入中...</div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
     </div>
-    <div class="modal-body" id="modalBody">
-      <div class="empty-state"><div class="icon">⏳</div><h3>載入中...</h3></div>
-    </div>
-  </div>
-</div>
-
-<!-- Keyword Modal -->
-<div class="kw-modal-overlay" id="kwModalOverlay" style="display:none;">
-  <div class="kw-modal">
-    <h3>新增常用關鍵字</h3>
-    <p>儲存在本機瀏覽器，點擊可快速搜尋</p>
-    <input type="text" id="kwInput" placeholder="例如：醫療器材、長照、消防">
-    <div class="kw-modal-btns">
-      <button class="kw-cancel" onclick="document.getElementById('kwModalOverlay').style.display='none'">取消</button>
-      <button class="kw-save" onclick="saveKeyword()">新增</button>
-    </div>
+    <div class="modal-body" id="mBody"><div class="loading-overlay"><div class="spinner"></div></div></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://pcc-api.openfun.app/api';
+const API='https://pcc-api.openfun.app/api';
 
-const state = {
-  mode: 'keyword',
-  query: '',
-  page: 1,
-  totalPages: 1,
-  totalRecords: 0,
-  typeFilter: '',
-  loading: false,
-  // for date mode: store all records, paginate client-side
-  allDateRecords: [],
-  PAGE_SIZE: 50,
-  keywords: JSON.parse(localStorage.getItem('twTenderKeywords') || '["醫療器材","長照","消防","護理","輔具"]'),
+// ═══ State ═══
+const S={
+  activePage:'dashboard',
+  tender:{records:[],filtered:[],page:1,totalPages:1,dateFilter:'today',methodFilter:'',catFilter:'',searchQ:''},
+  award:{records:[],filtered:[],page:1,totalPages:1,dateFilter:'today',methodFilter:'',catFilter:'',searchQ:''},
+  PAGE_SIZE:50,
+  todayStr:'',
 };
 
-// ── Helpers ──────────────────────────────────
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
-}
+// ═══ Utilities ═══
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate=d=>{const s=String(d);return s.length===8?`${s.slice(0,4)}/${s.slice(4,6)}/${s.slice(6,8)}`:s;};
+const parseAmt=s=>{if(!s)return 0;const n=s.replace(/[^0-9.]/g,'');return parseFloat(n)||0;};
+const fmtAmt=n=>{if(n>=100000000)return `${(n/100000000).toFixed(1)}億`;if(n>=10000)return `${Math.round(n/10000)}萬`;return n.toLocaleString();};
+const dv=(d,k)=>d[k]||d[k+' ']||'';
+const toast=msg=>{const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);};
 
-function fmtDate(d) {
-  const s = String(d);
-  if (s.length !== 8) return d;
-  return `${s.slice(0,4)}/${s.slice(4,6)}/${s.slice(6,8)}`;
-}
-
-function getTypeInfo(type) {
-  if (!type) return { badge:'badge-other', stripe:'stripe-other' };
-  if (type.includes('無法決標')) return { badge:'badge-noaward', stripe:'stripe-noaward' };
-  if (type.includes('決標')) return { badge:'badge-award', stripe:'stripe-award' };
-  if (type.includes('招標') || type.includes('公開')) return { badge:'badge-tender', stripe:'stripe-tender' };
-  return { badge:'badge-other', stripe:'stripe-other' };
-}
-
-function highlight(text, q) {
-  if (!q || !text) return escHtml(text || '');
-  const esc = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return escHtml(text).replace(new RegExp(`(${esc})`,'gi'),'<mark>$1</mark>');
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function getBudget(brief, detail) {
-  if (detail) {
-    const keys = ['採購資料:預算金額','決標資料:總決標金額','決標品項:第1品項:得標廠商1:決標金額','採購資料:預算金額'];
-    for (const k of keys) {
-      const v = detail[k] || detail[k + ' '];
-      if (v && v !== '' && v !== '不公開' && v !== '否') return v;
-    }
-  }
-  return null;
-}
-
-// ── Keyword Tags ──────────────────────────────
-function renderKeywords() {
-  const container = document.getElementById('keywordTags');
-  const addBtn = document.getElementById('addKwBtn');
-  container.querySelectorAll('.kw-tag').forEach(el => el.remove());
-  state.keywords.forEach(kw => {
-    const tag = document.createElement('button');
-    tag.className = 'kw-tag';
-    tag.innerHTML = `${escHtml(kw)} <span class="kw-del">×</span>`;
-    tag.addEventListener('click', e => {
-      if (e.target.classList.contains('kw-del')) {
-        state.keywords = state.keywords.filter(k => k !== kw);
-        localStorage.setItem('twTenderKeywords', JSON.stringify(state.keywords));
-        renderKeywords();
-      } else {
-        state.mode = 'keyword';
-        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-        document.querySelector('[data-mode="keyword"]').classList.add('active');
-        document.getElementById('searchInput').value = kw;
-        doSearch(kw, 1);
-      }
-    });
-    container.insertBefore(tag, addBtn);
-  });
-}
-
-function saveKeyword() {
-  const val = document.getElementById('kwInput').value.trim();
-  if (val && !state.keywords.includes(val)) {
-    state.keywords.push(val);
-    localStorage.setItem('twTenderKeywords', JSON.stringify(state.keywords));
-    renderKeywords();
-    showToast(`已新增「${val}」`);
-  }
-  document.getElementById('kwInput').value = '';
-  document.getElementById('kwModalOverlay').style.display = 'none';
-}
-document.getElementById('addKwBtn').addEventListener('click', () => {
-  document.getElementById('kwModalOverlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('kwInput').focus(), 50);
-});
-document.getElementById('kwInput').addEventListener('keydown', e => { if (e.key==='Enter') saveKeyword(); });
-
-// ── Mode Tabs ─────────────────────────────────
-document.querySelectorAll('.nav-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.mode = btn.dataset.mode;
-    const ph = { keyword:'關鍵字搜尋標案名稱...', unit:'輸入機關名稱（如：衛生福利部）...', date:'輸入日期（如：20260610）', company:'輸入廠商名稱...' };
-    document.getElementById('searchInput').placeholder = ph[state.mode] || '搜尋...';
-    document.getElementById('searchInput').focus();
-  });
-});
-
-// ── Type Filter Helper ─────────────────────────
-// Fix: '決標' filter must NOT match '無法決標'
-function matchTypeFilter(type, tf) {
-  if (!tf) return true;
-  if (tf === '決標') return type.includes('決標') && !type.includes('無法決標');
+function matchTypeFilter(type,tf){
+  if(!tf)return true;
+  if(tf==='決標')return type.includes('決標')&&!type.includes('無法決標');
   return type.includes(tf);
 }
+function getTypeInfo(type){
+  if(!type)return{badge:'tmb-limited',label:'其他'};
+  if(type.includes('無法決標'))return{badge:'',label:'無法決標'};
+  if(type.includes('決標'))return{badge:'tmb-price',label:'決標'};
+  if(type.includes('公開招標'))return{badge:'tmb-open',label:'公開招標'};
+  if(type.includes('報價'))return{badge:'tmb-price',label:'報價單'};
+  return{badge:'tmb-limited',label:type.slice(0,5)};
+}
+function getTenderMethod(detail){
+  const d=detail||{};
+  return dv(d,'採購資料:招標方式')||dv(d,'招標資料:招標方式')||dv(d,'招標資料:招標方式 ')||'';
+}
+function getCategory(brief){
+  const cat=brief?.category||'';
+  if(cat.includes('工程'))return'工程';
+  if(cat.includes('財物'))return'財物';
+  if(cat.includes('勞務'))return'勞務';
+  const title=brief?.title||'';
+  if(title.includes('工程'))return'工程';
+  return '';
+}
 
-// ── Search ────────────────────────────────────
-async function doSearch(query, page) {
-  if (state.loading) return;
-  query = (query || '').trim();
-  if (!query) { showToast('請輸入搜尋內容'); return; }
+// ═══ Date helpers ═══
+function getTodayStr(){
+  const d=new Date();
+  return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+function getDateRange(key){
+  const today=new Date();
+  const fmt=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  if(key==='today')return[fmt(today)];
+  const mon=new Date(today);mon.setDate(today.getDate()-today.getDay()+1);// this Monday
+  if(key==='week'){const dates=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);dates.push(fmt(d));}return dates;}
+  const offsets={w1:[7,13],w2:[14,20],w3:[21,27],w4:[28,34]};
+  const[a,b]=offsets[key]||[0,0];
+  const dates=[];
+  for(let i=a;i<=b;i++){const d=new Date(today);d.setDate(today.getDate()-i);dates.push(fmt(d));}
+  return dates;
+}
 
-  state.query = query;
-  state.page = page;
-  state.loading = true;
-  renderSkeleton();
+// ═══ Navigation ═══
+document.querySelectorAll('.sb-btn[data-page]').forEach(btn=>{
+  btn.addEventListener('click',()=>switchPage(btn.dataset.page));
+});
+function switchPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${page}`)?.classList.add('active');
+  document.querySelector(`.sb-btn[data-page="${page}"]`)?.classList.add('active');
+  S.activePage=page;
+  const titles={dashboard:'總覽儀表板',tender:'招標',award:'決標',reserve:'底價分析',vendor:'廠商分析'};
+  document.getElementById('topbarTitle').textContent=titles[page]||page;
+  if(page==='tender'&&!S.tender.records.length)loadListPage('tender');
+  if(page==='award'&&!S.award.records.length)loadListPage('award');
+}
 
-  try {
-    let records = [], totalRecords = 0, totalPages = 1;
-    const tf = document.getElementById('typeFilter').value;
+// Top search
+document.getElementById('topSearchBtn').addEventListener('click',()=>{
+  const q=document.getElementById('topSearch').value.trim();
+  if(!q){toast('請輸入搜尋內容');return;}
+  switchPage('tender');
+  document.getElementById('tenderSearch').value=q;
+  S.tender.searchQ=q;
+  loadListPage('tender');
+});
+document.getElementById('topSearch').addEventListener('keydown',e=>{
+  if(e.key==='Enter')document.getElementById('topSearchBtn').click();
+});
 
-    if (state.mode === 'date') {
-      // Date mode: fetch all at once (API returns all in one shot), paginate client-side
-      const d = query.replace(/[\/\-]/g,'');
-      if (page === 1 || !state.allDateRecords.length) {
-        const res = await fetch(`${API}/listbydate?date=${encodeURIComponent(d)}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        state.allDateRecords = data.records || [];
-      }
-      let filtered = state.allDateRecords;
-      if (tf) filtered = filtered.filter(r => matchTypeFilter(r.brief?.type||'', tf));
-      totalRecords = filtered.length;
-      totalPages = Math.max(1, Math.ceil(totalRecords / state.PAGE_SIZE));
-      const start = (page - 1) * state.PAGE_SIZE;
-      records = filtered.slice(start, start + state.PAGE_SIZE);
+// ═══ DASHBOARD ═══
+async function loadDashboard(){
+  const today=getTodayStr();
+  S.todayStr=today;
+  // Update date display
+  const d=new Date();
+  document.getElementById('topDate').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
 
-    } else if (state.mode === 'unit') {
-      const res = await fetch(`${API}/listbyunit?unit_name=${encodeURIComponent(query)}&page=${page}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      records = data.records || [];
-      totalRecords = data.total || records.length;
-      totalPages = data.total_page || 1;  // note: key is total_page not total_pages
+  try{
+    const res=await fetch(`${API}/listbydate?date=${today}`);
+    const data=await res.json();
+    const records=data.records||[];
+    const tender=records.filter(r=>{const t=r.brief?.type||'';return(t.includes('招標')||t.includes('公開取得'))&&!t.includes('無法');});
+    const award=records.filter(r=>{const t=r.brief?.type||'';return t.includes('決標')&&!t.includes('無法');});
+    const noaward=records.filter(r=>(r.brief?.type||'').includes('無法決標'));
+    const vendors=new Set();
+    award.forEach(r=>r.brief?.companies?.names?.forEach(n=>vendors.add(n)));
 
-    } else if (state.mode === 'company') {
-      const res = await fetch(`${API}/searchbycompanyname?query=${encodeURIComponent(query)}&page=${page}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      records = data.records || [];
-      totalRecords = data.total_records || records.length;
-      totalPages = data.total_pages || 1;
+    document.getElementById('s-tender').textContent=tender.length.toLocaleString();
+    document.getElementById('s-award').textContent=award.length.toLocaleString();
+    document.getElementById('s-vendor').textContent=vendors.size.toLocaleString();
+    document.getElementById('s-noaward').textContent=noaward.length.toLocaleString();
+    document.getElementById('wc-tender').textContent=tender.length.toLocaleString();
+    document.getElementById('wc-award').textContent=award.length.toLocaleString();
+    document.getElementById('wc-vendor').textContent=vendors.size.toLocaleString();
 
-    } else {
-      // keyword (default)
-      const res = await fetch(`${API}/searchbytitle?query=${encodeURIComponent(query)}&page=${page}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      records = data.records || [];
-      totalRecords = data.total_records || records.length;
-      totalPages = data.total_pages || 1;
-    }
-
-    // client-side type filter (for non-date modes)
-    if (tf && state.mode !== 'date') {
-      records = records.filter(r => matchTypeFilter(r.brief?.type||'', tf));
-    }
-
-    state.totalRecords = totalRecords;
-    state.totalPages = Math.min(totalPages, 100);
-
-    renderResults(records, query);
-    renderPagination();
-
-    const modeLabel = {keyword:'關鍵字',unit:'機關',date:'日期',company:'廠商'}[state.mode] || '';
-    document.getElementById('statsText').innerHTML =
-      `[${modeLabel}] 共 <strong>${totalRecords.toLocaleString()}</strong> 筆，第 ${page}／${state.totalPages} 頁`;
-
-  } catch(err) {
-    document.getElementById('resultContainer').innerHTML =
-      `<div class="empty-state"><div class="icon">⚠️</div><h3>查詢失敗</h3><p>${escHtml(err.message)}</p></div>`;
-    document.getElementById('statsText').textContent = '查詢失敗';
+    // Render week lists
+    renderWeekList('wl-tender',tender.slice(0,12),'tender');
+    renderWeekList('wl-award',award.slice(0,12),'award');
+    renderVendorList('wl-vendor',[...vendors].slice(0,15),award);
+  }catch(e){
+    document.getElementById('wl-tender').innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${esc(e.message)}</p></div>`;
   }
-  state.loading = false;
 }
 
-// ── Render Skeleton ───────────────────────────
-function renderSkeleton() {
-  document.getElementById('resultContainer').innerHTML =
-    `<div class="skeleton-list">${Array(6).fill(0).map(() =>
-      `<div class="skeleton-card"><div class="sk sk-stripe"></div><div style="flex:1"><div class="sk sk-line sk-w80"></div><div class="sk sk-line sk-w50"></div><div class="sk sk-line sk-w30" style="height:10px"></div></div></div>`
-    ).join('')}</div>`;
-  document.getElementById('statsText').innerHTML = '查詢中...';
-  document.getElementById('pagination').innerHTML = '';
+function renderWeekList(containerId,records,type){
+  const el=document.getElementById(containerId);
+  if(!records.length){el.innerHTML=`<div class="empty"><p>暫無資料</p></div>`;return;}
+  el.innerHTML=records.map(r=>{
+    const budget=r.brief?.budget||(r.detail&&dv(r.detail,'採購資料:預算金額'))||'';
+    const award=r.brief?.companies?.names?.[0]||'';
+    const awardAmt=r.detail&&dv(r.detail,'決標資料:總決標金額')||'';
+    return`<div class="week-item" onclick="openDetailByUrl('${esc(r.tender_api_url)}','${esc(r.brief?.title||'')}')">
+      <div class="wi-title" title="${esc(r.brief?.title||'')}">
+        ${type==='award'&&award?`<span class="wi-badge wib-blue">${esc(award.slice(0,8))}</span> `:''}${esc(r.brief?.title||'（無標題）')}
+      </div>
+      <div class="wi-meta">
+        <span>🏛️ ${esc((r.unit_name||'').slice(0,12))}</span>
+        ${type==='tender'&&budget?`<span class="wi-badge wib-green">預算 ${esc(budget)}</span>`:''}
+        ${type==='award'&&awardAmt?`<span class="wi-badge wib-green">決標 ${esc(awardAmt)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-// ── Render Results ────────────────────────────
-function renderResults(records, query) {
-  if (!records.length) {
-    document.getElementById('resultContainer').innerHTML =
-      `<div class="empty-state"><div class="icon">🔍</div><h3>沒有找到結果</h3><p>試試換個關鍵字或調整篩選條件</p></div>`;
+function renderVendorList(containerId,vendors,awardRecords){
+  const el=document.getElementById(containerId);
+  if(!vendors.length){el.innerHTML=`<div class="empty"><p>暫無資料</p></div>`;return;}
+  // find award record for each vendor
+  const vendorMap={};
+  awardRecords.forEach(r=>{
+    r.brief?.companies?.names?.forEach(n=>{
+      if(!vendorMap[n])vendorMap[n]={title:r.brief?.title,unit:r.unit_name,amount:''};
+    });
+  });
+  el.innerHTML=vendors.map(v=>{
+    const info=vendorMap[v]||{};
+    return`<div class="week-item" onclick="doVendorSearch('${esc(v)}')">
+      <div class="wi-title">${esc(v)}</div>
+      <div class="wi-meta">
+        ${info.unit?`<span>🏛️ ${esc((info.unit||'').slice(0,12))}</span>`:''}
+        ${info.title?`<span class="wi-badge wib-amber">得標</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ LIST PAGE (Tender/Award) ═══
+const listCache={};
+
+async function loadListPage(type){
+  const st=S[type];
+  const wrap=document.getElementById(`${type}-table-wrap`);
+  wrap.innerHTML=`<div class="loading-overlay"><div class="spinner"></div><span style="font-size:12px;color:var(--gray-400)">載入中...</span></div>`;
+
+  // Determine dates to fetch
+  const dates=getDateRange(st.dateFilter);
+  const cacheKey=dates.join(',');
+
+  try{
+    let allRecords=[];
+    if(listCache[cacheKey]){
+      allRecords=listCache[cacheKey];
+    }else{
+      // fetch all dates (parallel for small sets)
+      const results=await Promise.all(dates.map(d=>fetch(`${API}/listbydate?date=${d}`).then(r=>r.json())));
+      results.forEach(data=>{allRecords=allRecords.concat(data.records||[]);});
+      listCache[cacheKey]=allRecords;
+    }
+
+    // Filter by type
+    const typeFilter=type==='tender'
+      ?r=>{const t=r.brief?.type||'';return(t.includes('招標')||t.includes('公開取得'))&&!t.includes('無法');}
+      :r=>{const t=r.brief?.type||'';return t.includes('決標')&&!t.includes('無法決標');};
+
+    let filtered=allRecords.filter(typeFilter);
+
+    // Apply search
+    if(st.searchQ){
+      const q=st.searchQ.toLowerCase();
+      filtered=filtered.filter(r=>
+        (r.brief?.title||'').toLowerCase().includes(q)||
+        (r.unit_name||'').toLowerCase().includes(q)||
+        (r.job_number||'').toLowerCase().includes(q)||
+        r.brief?.companies?.names?.some(n=>n.toLowerCase().includes(q))
+      );
+    }
+    // Apply category filter
+    if(st.catFilter){
+      filtered=filtered.filter(r=>{
+        const cat=r.brief?.category||r.brief?.title||'';
+        return cat.includes(st.catFilter);
+      });
+    }
+
+    st.records=allRecords;
+    st.filtered=filtered;
+    st.totalPages=Math.max(1,Math.ceil(filtered.length/S.PAGE_SIZE));
+
+    const countEl=document.getElementById(`${type}-count`);
+    const rangeEl=document.getElementById(`${type}-range`);
+    countEl.textContent=filtered.length.toLocaleString();
+    rangeEl.textContent=`筆資料 (${dates[dates.length-1].slice(0,4)}/${dates[dates.length-1].slice(4,6)}/${dates[dates.length-1].slice(6)}${dates.length>1?` ~ ${dates[0].slice(4,6)}/${dates[0].slice(6)}`:''}公告)`;
+
+    renderTable(type,st.page);
+  }catch(e){
+    wrap.innerHTML=`<div class="empty"><div class="ei">⚠️</div><h3>載入失敗</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderTable(type,page){
+  const st=S[type];
+  st.page=page;
+  const start=(page-1)*S.PAGE_SIZE;
+  const rows=st.filtered.slice(start,start+S.PAGE_SIZE);
+  const wrap=document.getElementById(`${type}-table-wrap`);
+
+  if(!rows.length){
+    wrap.innerHTML=`<div class="empty"><div class="ei">🔍</div><h3>沒有找到結果</h3><p>試試調整篩選條件</p></div>`;
+    document.getElementById(`${type}-pagination`).style.display='none';
     return;
   }
 
-  // Store records for click handler
-  window._tenderRecords = records;
+  const isAward=type==='award';
+  const headers=isAward
+    ?['#','採購機關','案名','招標採','決標採','分類','決標金額','底價','公告']
+    :['#','採購機關','案名','招標採','決標採','分類','預算','截止','公告'];
 
-  const html = records.map((r, idx) => {
-    const ti = getTypeInfo(r.brief?.type);
-    const title = highlight(r.brief?.title || '（無標題）', query);
-    const companies = r.brief?.companies?.names || [];
-    const compStr = companies.length > 0
-      ? companies.slice(0,2).join('、') + (companies.length > 2 ? ` 等${companies.length}家` : '')
-      : '';
-    const budget = getBudget(r.brief, r.detail);
+  const tableHtml=`<table class="tender-table">
+    <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const ti=getTypeInfo(r.brief?.type||'');
+      const budget=r.brief?.budget||'';
+      const companies=r.brief?.companies?.names||[];
+      const compStr=companies.slice(0,2).join('、')+(companies.length>2?`等${companies.length}家`:'');
+      const awardAmt=companies.length?'—':'';
+      const deadline=r.brief?.deadline||'';
+      const cat=r.brief?.category?r.brief.category.replace(/^[^>]*>/,'').slice(0,4):'';
+      const method=r.brief?.type?.includes('公開')?'公開招標':r.brief?.type?.includes('報價')?'報價單':'限制性';
+      const awardMethod=r.brief?.type?.includes('最低')?'最低標':r.brief?.type?.includes('有利')?'最有利標':'—';
 
-    return `<div class="card" onclick="openDetailByIdx(${idx})" role="button" tabindex="0">
-      <div class="card-stripe ${ti.stripe}"></div>
-      <div class="card-body">
-        <div class="card-top">
-          <div class="card-title">${title}</div>
-          <span class="badge ${ti.badge}">${escHtml(r.brief?.type || '其他')}</span>
-        </div>
-        <div class="card-meta">
-          <span class="meta-item">📅 ${fmtDate(r.date)}</span>
-          <span class="meta-item">🏛️ <strong>${escHtml(r.unit_name || '—')}</strong></span>
-          ${r.job_number ? `<span class="meta-item">案號：${escHtml(r.job_number)}</span>` : ''}
-          ${compStr ? `<span class="meta-item">🏢 ${escHtml(compStr)}</span>` : ''}
-          ${r.brief?.category ? `<span class="meta-item">📂 ${escHtml(r.brief.category.replace(/^[^>]*>/,''))}</span>` : ''}
-        </div>
-      </div>
-      ${budget ? `<div class="card-budget"><div class="budget-amount">${escHtml(budget)}</div><div class="budget-label">金額</div></div>` : ''}
-    </div>`;
-  }).join('');
+      return`<tr>
+        <td style="color:var(--gray-400);font-size:11px">${start+i+1}</td>
+        <td><div class="td-unit">${esc((r.unit_name||'').slice(0,14))}</div></td>
+        <td style="max-width:280px">
+          <div class="td-title" onclick="openDetailByUrl('${esc(r.tender_api_url)}','${esc(r.brief?.title||'')}')">${esc(r.brief?.title||'（無標題）')}</div>
+          ${isAward&&compStr?`<div style="font-size:10px;color:var(--gray-500);margin-top:2px">🏢 ${esc(compStr)}</div>`:''}
+        </td>
+        <td><span class="td-method-badge tmb-open">${esc(method)}</span></td>
+        <td><span class="td-method-badge tmb-price">${esc(isAward?'最低標':'最低標')}</span></td>
+        <td class="td-cat">${esc(cat)}</td>
+        <td class="${isAward?'td-award-amount':'td-budget'}">${isAward?(compStr?compStr.split('、')[0].slice(0,8)+'…':'—'):(budget?esc(budget):'—')}</td>
+        <td class="td-deadline">${isAward?(r.brief?.awardDate||fmtDate(r.date).slice(5)):(deadline||'—')}</td>
+        <td style="font-size:11px;color:var(--gray-500)">${fmtDate(r.date).slice(5)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
 
-  document.getElementById('resultContainer').innerHTML = `<div class="results-list">${html}</div>`;
+  wrap.innerHTML=tableHtml;
+  renderTablePagination(type);
 }
 
-// ── Pagination ────────────────────────────────
-function renderPagination() {
-  const { page, totalPages } = state;
-  if (totalPages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+function renderTablePagination(type){
+  const st=S[type];
+  const pg=document.getElementById(`${type}-pagination`);
+  const info=document.getElementById(`${type}-pg-info`);
+  const btns=document.getElementById(`${type}-pg-btns`);
+  const jumpInput=document.getElementById(`${type}-jump-input`);
 
-  const pages = [];
-  for (let i = 1; i <= totalPages; i++) {
-    if (i===1 || i===totalPages || (i>=page-2 && i<=page+2)) pages.push(i);
-    else if (pages[pages.length-1] !== '…') pages.push('…');
+  if(st.totalPages<=1){pg.style.display='none';return;}
+  pg.style.display='flex';
+
+  const start=(st.page-1)*S.PAGE_SIZE+1;
+  const end=Math.min(st.page*S.PAGE_SIZE,st.filtered.length);
+  info.textContent=`顯示 ${start}-${end} 筆，共 ${st.filtered.length} 筆`;
+  jumpInput.max=st.totalPages;
+
+  const pages=[];
+  for(let i=1;i<=st.totalPages;i++){
+    if(i===1||i===st.totalPages||(i>=st.page-2&&i<=st.page+2))pages.push(i);
+    else if(pages[pages.length-1]!=='…')pages.push('…');
   }
 
-  document.getElementById('pagination').innerHTML = [
-    `<button class="pg-btn" ${page===1?'disabled':''} onclick="doSearch(state.query,${page-1})">‹ 上頁</button>`,
-    ...pages.map(p => p==='…'
-      ? `<span class="pg-ellipsis">…</span>`
-      : `<button class="pg-btn ${p===page?'active':''}" onclick="doSearch(state.query,${p})">${p}</button>`),
-    `<button class="pg-btn" ${page===totalPages?'disabled':''} onclick="doSearch(state.query,${page+1})">下頁 ›</button>`
+  btns.innerHTML=[
+    `<button class="tp-btn" ${st.page===1?'disabled':''} onclick="renderTable('${type}',${st.page-1})">‹</button>`,
+    ...pages.map(p=>p==='…'
+      ?`<span style="padding:4px 3px;font-size:12px;color:var(--gray-400)">…</span>`
+      :`<button class="tp-btn ${p===st.page?'active':''}" onclick="renderTable('${type}',${p})">${p}</button>`),
+    `<button class="tp-btn" ${st.page===st.totalPages?'disabled':''} onclick="renderTable('${type}',${st.page+1})">›</button>`
   ].join('');
 }
 
-// ── Detail Modal ──────────────────────────────
-function openDetailByIdx(idx) {
-  const r = window._tenderRecords[idx];
-  if (!r) return;
-  openDetail(r.tender_api_url, r);
+function jumpPage(type){
+  const v=parseInt(document.getElementById(`${type}-jump-input`).value);
+  if(v>=1&&v<=S[type].totalPages)renderTable(type,v);
 }
 
-async function openDetail(apiUrl, listRecord) {
-  document.getElementById('modalOverlay').style.display = 'flex';
-  document.getElementById('modalTitle').textContent = listRecord?.brief?.title || '載入中...';
-  document.getElementById('modalBody').innerHTML =
-    `<div class="empty-state"><div class="icon">⏳</div><h3>載入中...</h3></div>`;
+// Filter handlers
+function setDateFilter(el,type){
+  document.querySelectorAll(`#fp-${type} .fp-item[data-filter="date"]`).forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  S[type].dateFilter=el.dataset.val;
+  S[type].page=1;
+  delete listCache[getDateRange(S[type].dateFilter).join(',')]; // force reload
+  loadListPage(type);
+}
+function setMethodFilter(el,type){
+  const wasActive=el.classList.contains('active');
+  document.querySelectorAll(`#fp-${type} .fp-item[data-filter="method"]`).forEach(e=>e.classList.remove('active'));
+  if(!wasActive){el.classList.add('active');S[type].methodFilter=el.dataset.val;}
+  else S[type].methodFilter='';
+  // re-filter from cached
+  S[type].page=1;loadListPage(type);
+}
+function setCatFilter(el,type){
+  const wasActive=el.classList.contains('active');
+  document.querySelectorAll(`#fp-${type} .fp-item[data-filter="cat"]`).forEach(e=>e.classList.remove('active'));
+  if(!wasActive){el.classList.add('active');S[type].catFilter=el.dataset.val;}
+  else S[type].catFilter='';
+  S[type].page=1;loadListPage(type);
+}
+function clearFilters(type){
+  document.querySelectorAll(`#fp-${type} .fp-item`).forEach(e=>e.classList.remove('active'));
+  document.querySelector(`#fp-${type} .fp-item[data-val="today"]`).classList.add('active');
+  S[type].dateFilter='today';S[type].methodFilter='';S[type].catFilter='';S[type].searchQ='';
+  document.getElementById(`${type}Search`).value='';
+  S[type].page=1;loadListPage(type);
+}
+function doListSearch(type){
+  const q=document.getElementById(`${type}Search`).value.trim();
+  S[type].searchQ=q;
+  S[type].page=1;
+  loadListPage(type);
+}
+document.getElementById('tenderSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doListSearch('tender');});
+document.getElementById('awardSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doListSearch('award');});
 
-  try {
-    const res = await fetch(apiUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const records = data.records || [];
-    if (!records.length) throw new Error('無詳細資料');
-    renderModal(records);
-  } catch(e) {
-    document.getElementById('modalBody').innerHTML =
-      `<div class="empty-state"><div class="icon">⚠️</div><h3>載入失敗</h3><p>${escHtml(e.message)}</p></div>`;
-  }
+// ═══ RESERVE PRICE ANALYSIS ═══
+const HOT_ORGS=['台大醫院','台北榮總','台中榮總','高雄榮總','衛生福利部','食品藥物管理署',
+  '台電','台鐵','台北捷運','台灣銀行','中華郵政','國防部',
+  '成功大學','台灣大學','清華大學','陽明交通大學','台北市政府','高雄市政府',
+  '新北市政府','台中市政府','桃園市政府','台南市政府','故宮博物院','海巡署'];
+
+function initReservePage(){
+  const grid=document.getElementById('hotOrgGrid');
+  grid.innerHTML=HOT_ORGS.map(o=>`<button class="hot-org-btn" onclick="doReserveSearch('${esc(o)}')">${esc(o)}</button>`).join('');
 }
 
-function renderModal(records) {
-  const latest = records[0];
-  const d = latest.detail || {};
-  const type = d['type'] || latest.brief?.type || '';
-  const ti = getTypeInfo(type);
-  const isAward = type.includes('決標');
-  const isTender = type.includes('招標') || type.includes('公開');
+async function doReserveSearch(query){
+  if(query)document.getElementById('reserveSearch').value=query;
+  const q=(query||document.getElementById('reserveSearch').value).trim();
+  if(!q){toast('請輸入機關名稱');return;}
 
-  // Title
-  const title = d['採購資料:標案名稱'] || d['採購資料:標案名稱 '] || latest.brief?.title || '（無標題）';
-  document.getElementById('modalTitle').innerHTML =
-    `<span class="badge ${ti.badge}" style="margin-bottom:4px;display:inline-flex;">${escHtml(type)}</span><br>${escHtml(title)}`;
+  const resultEl=document.getElementById('reserveResult');
+  document.getElementById('reserveHotOrgs').style.display='none';
+  resultEl.innerHTML=`<div class="loading-overlay" style="margin-top:20px"><div class="spinner"></div><span style="font-size:12px;color:var(--gray-400)">正在分析「${esc(q)}」的底價資料...</span></div>`;
 
-  // Helper to get detail value (handle trailing space in some keys)
-  const dv = (k) => d[k] || d[k+' '] || '';
+  try{
+    // fetch multiple pages of award records for this unit
+    const res=await fetch(`${API}/listbyunit?unit_name=${encodeURIComponent(q)}&page=1`);
+    const data=await res.json();
+    const totalPages=Math.min(data.total_page||1,5); // max 5 pages
+    let allRecords=data.records||[];
 
-  // ── Procurement Info ──
-  const procItems = [];
-  if (dv('採購資料:標案案號')) procItems.push({k:'案號', v:dv('採購資料:標案案號')});
-  if (dv('招標資料:公告日') || fmtDate(latest.date)) procItems.push({k:'公告日期', v:dv('招標資料:公告日') || fmtDate(latest.date)});
-  if (dv('採購資料:開標時間') || dv('領投開標:開標時間')) procItems.push({k:'開標時間', v:dv('採購資料:開標時間')||dv('領投開標:開標時間')});
-  if (dv('領投開標:截止投標')) procItems.push({k:'截止投標', v:dv('領投開標:截止投標')});
-  if (dv('採購資料:招標方式') || dv('招標資料:招標方式 ') || dv('招標資料:招標方式')) procItems.push({k:'招標方式', v:dv('採購資料:招標方式')||dv('招標資料:招標方式 ')||dv('招標資料:招標方式')});
-  if (dv('採購資料:決標方式') || dv('招標資料:決標方式 ') || dv('招標資料:決標方式')) procItems.push({k:'決標方式', v:dv('採購資料:決標方式')||dv('招標資料:決標方式 ')||dv('招標資料:決標方式')});
-  if (dv('採購資料:標的分類')) procItems.push({k:'標的分類', v:dv('採購資料:標的分類'), full:true});
-  if (dv('採購資料:採購金額級距')) procItems.push({k:'金額級距', v:dv('採購資料:採購金額級距')});
-  if (dv('採購資料:履約地點')) procItems.push({k:'履約地點', v:dv('採購資料:履約地點')});
-  if (dv('領投開標:開標地點')) procItems.push({k:'開標地點', v:dv('領投開標:開標地點'), full:true});
+    if(totalPages>1){
+      const morePages=await Promise.all(
+        Array.from({length:Math.min(totalPages-1,4)},(_,i)=>
+          fetch(`${API}/listbyunit?unit_name=${encodeURIComponent(q)}&page=${i+2}`).then(r=>r.json())
+        )
+      );
+      morePages.forEach(d=>{allRecords=allRecords.concat(d.records||[]);});
+    }
 
-  // ── Budget Info ──
-  const budgetItems = [];
-  if (dv('採購資料:預算金額') && dv('採購資料:預算金額') !== '不公開') budgetItems.push({k:'預算金額', v:dv('採購資料:預算金額'), big:true});
-  if (isAward) {
-    if (dv('決標資料:底價金額') && dv('決標資料:底價金額') !== '不公開') budgetItems.push({k:'底價金額', v:dv('決標資料:底價金額')});
-    if (dv('決標資料:總決標金額') && dv('決標資料:總決標金額') !== '不公開') budgetItems.push({k:'總決標金額', v:dv('決標資料:總決標金額'), big:true});
-    if (dv('決標資料:決標日期')) budgetItems.push({k:'決標日期', v:dv('決標資料:決標日期')});
-  }
-
-  // ── Org Info ──
-  const orgItems = [];
-  if (dv('機關資料:機關名稱')) orgItems.push({k:'機關名稱', v:dv('機關資料:機關名稱'), full:true});
-  if (dv('機關資料:單位名稱') && dv('機關資料:單位名稱') !== dv('機關資料:機關名稱')) orgItems.push({k:'單位', v:dv('機關資料:單位名稱')});
-  if (dv('機關資料:機關地址')) orgItems.push({k:'地址', v:dv('機關資料:機關地址'), full:true});
-  if (dv('機關資料:聯絡人')) orgItems.push({k:'聯絡人', v:dv('機關資料:聯絡人')});
-  if (dv('機關資料:聯絡電話')) orgItems.push({k:'電話', v:dv('機關資料:聯絡電話')});
-  if (dv('機關資料:電子郵件信箱')) orgItems.push({k:'Email', v:dv('機關資料:電子郵件信箱'), full:true});
-
-  // ── Companies ──
-  const companies = [];
-  const numStr = dv('投標廠商:投標廠商家數');
-  const num = parseInt(numStr) || (latest.brief?.companies?.names?.length || 0);
-  for (let i = 1; i <= Math.max(num, latest.brief?.companies?.names?.length || 0); i++) {
-    const name = dv(`投標廠商:投標廠商${i}:廠商名稱`) || (latest.brief?.companies?.names?.[i-1] || '');
-    if (!name) continue;
-    companies.push({
-      name,
-      isWinner: dv(`投標廠商:投標廠商${i}:是否得標`) === '是',
-      amount: dv(`投標廠商:投標廠商${i}:決標金額`),
-      addr: dv(`投標廠商:投標廠商${i}:廠商地址`),
-      phone: dv(`投標廠商:投標廠商${i}:廠商電話`),
-      isSME: dv(`投標廠商:投標廠商${i}:是否為中小企業`) === '是',
+    // filter only award records with companies
+    const awards=allRecords.filter(r=>{
+      const t=r.brief?.type||'';
+      return t.includes('決標')&&!t.includes('無法')&&r.brief?.companies?.names?.length>0;
     });
+
+    if(!awards.length){
+      resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">🔍</div><h3>找不到「${esc(q)}」的決標記錄</h3><p>請嘗試其他關鍵字</p></div>`;
+      document.getElementById('reserveHotOrgs').style.display='block';
+      return;
+    }
+
+    // Fetch detail for first 30 to get reserve prices
+    const sample=awards.slice(0,30);
+    const details=await Promise.allSettled(sample.map(r=>fetch(r.tender_api_url).then(d=>d.json())));
+    const analyzed=[];
+    details.forEach((res,i)=>{
+      if(res.status!=='fulfilled')return;
+      const rec=res.value.records?.[0];
+      if(!rec)return;
+      const d=rec.detail||{};
+      const budget=parseAmt(dv(d,'採購資料:預算金額'));
+      const reserve=parseAmt(dv(d,'決標資料:底價金額'));
+      const awarded=parseAmt(dv(d,'決標資料:總決標金額')||dv(d,'投標廠商:投標廠商1:決標金額'));
+      if(!budget&&!awarded)return;
+      const ratio=reserve&&budget?Math.round(reserve/budget*100):null;
+      const awardRatio=awarded&&(reserve||budget)?Math.round(awarded/(reserve||budget)*100):null;
+      analyzed.push({
+        title:dv(d,'採購資料:標案名稱')||sample[i].brief?.title||'',
+        date:fmtDate(sample[i].date),
+        budget:dv(d,'採購資料:預算金額'),
+        reserve:dv(d,'決標資料:底價金額'),
+        awarded:dv(d,'決標資料:總決標金額'),
+        ratio,awardRatio,
+        winner:sample[i].brief?.companies?.names?.[0]||'',
+        url:rec.tender_api_url||sample[i].tender_api_url,
+      });
+    });
+
+    renderReserveResult(q,awards.length,analyzed,data.unit_name||q);
+  }catch(e){
+    resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">⚠️</div><h3>分析失敗</h3><p>${esc(e.message)}</p></div>`;
+    document.getElementById('reserveHotOrgs').style.display='block';
+  }
+}
+
+function renderReserveResult(query,totalAwards,analyzed,unitName){
+  const el=document.getElementById('reserveResult');
+  if(!analyzed.length){
+    el.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">📊</div><h3>找不到足夠的底價資料</h3><p>此機關的決標公告未公開底價</p></div>`;
+    return;
   }
 
-  // ── Tender notice download link ──
-  const noticeUrl = dv('領投開標:是否提供電子領標:投標須知下載');
+  const withRatio=analyzed.filter(a=>a.ratio!==null);
+  const avgRatio=withRatio.length?Math.round(withRatio.reduce((s,a)=>s+a.ratio,0)/withRatio.length):null;
+  const withAward=analyzed.filter(a=>a.awardRatio!==null);
+  const avgAward=withAward.length?Math.round(withAward.reduce((s,a)=>s+a.awardRatio,0)/withAward.length):null;
+  const underBudget=analyzed.filter(a=>a.ratio&&a.ratio<100).length;
 
-  // ── Build HTML ──
-  const sectionHtml = (title, items) => {
-    const valid = items.filter(it => it.v && it.v.trim() !== '' && it.v !== '否');
-    if (!valid.length) return '';
-    return `<div class="detail-section">
-      <div class="detail-section-title">${title}</div>
-      <div class="detail-grid">${valid.map(it =>
-        `<div class="detail-item ${it.full?'full':''}">
-          <div class="detail-key">${escHtml(it.k)}</div>
-          <div class="${it.big?'detail-amount':'detail-val'}">${escHtml(it.v)}</div>
-        </div>`).join('')}
+  el.innerHTML=`
+  <div class="rp-result">
+    <div class="rp-result-header">
+      <button onclick="document.getElementById('reserveHotOrgs').style.display='block';document.getElementById('reserveResult').innerHTML=''" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-500)">← 返回</button>
+      <div class="rp-result-title">底價分析：${esc(unitName||query)}</div>
+      <div class="badge tmb-open" style="font-size:11px">共 ${totalAwards} 筆決標</div>
+    </div>
+    <div class="rp-stat-row">
+      <div class="rp-stat"><div class="rs-label">分析樣本</div><div class="rs-val">${analyzed.length} 筆</div><div class="rs-sub">近期決標</div></div>
+      <div class="rp-stat"><div class="rs-label">底價/預算 平均比</div><div class="rs-val">${avgRatio!==null?avgRatio+'%':'N/A'}</div><div class="rs-sub">底價通常低於預算</div></div>
+      <div class="rp-stat"><div class="rs-label">決標/底價 平均比</div><div class="rs-val">${avgAward!==null?avgAward+'%':'N/A'}</div><div class="rs-sub">競爭激烈程度指標</div></div>
+      <div class="rp-stat"><div class="rs-label">底價低於預算</div><div class="rs-val">${underBudget} 筆</div><div class="rs-sub">佔樣本 ${withRatio.length?Math.round(underBudget/withRatio.length*100):0}%</div></div>
+    </div>
+    <div class="rp-chart-area">
+      <div class="rp-chart-title">近期決標金額分析（樣本 ${analyzed.length} 筆）</div>
+      <div class="bar-chart">
+        ${analyzed.slice(0,15).map(a=>{
+          const maxAmt=Math.max(...analyzed.slice(0,15).map(x=>parseAmt(x.awarded||x.budget)||0))||1;
+          const bAmt=parseAmt(a.budget)||0;
+          const rAmt=parseAmt(a.reserve)||0;
+          const aAmt=parseAmt(a.awarded)||0;
+          const bPct=Math.min(100,Math.round(bAmt/maxAmt*100));
+          const aPct=Math.min(100,Math.round(aAmt/maxAmt*100));
+          return`<div class="bar-row">
+            <div class="bar-label" title="${esc(a.title)}" onclick="openDetailByUrl('${esc(a.url)}','${esc(a.title)}')">${esc(a.title.slice(0,24)+(a.title.length>24?'…':''))}</div>
+            <div class="bar-track" style="position:relative">
+              <div class="bar-fill bar-fill-blue" style="width:${bPct}%;position:absolute;opacity:.3"></div>
+              <div class="bar-fill bar-fill-green" style="width:${aPct}%">${aAmt>0?fmtAmt(aAmt):''}</div>
+            </div>
+            <div class="bar-meta">${a.ratio!==null?`底價${a.ratio}%`:''}</div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>`;
+    </div>
+    <table class="rp-table">
+      <thead><tr><th>案名</th><th>公告日</th><th>預算</th><th>底價</th><th>決標金額</th><th>底價/預算</th><th>決標/底價</th><th>得標廠商</th></tr></thead>
+      <tbody>${analyzed.map(a=>{
+        const ratioClass=a.ratio===null?'':(a.ratio>=95?'ratio-warn':(a.ratio>=85?'ratio-good':'ratio-bad'));
+        const awardClass=a.awardRatio===null?'':(a.awardRatio>=95?'ratio-warn':(a.awardRatio>=80?'ratio-good':'ratio-bad'));
+        return`<tr>
+          <td><span class="td-title" onclick="openDetailByUrl('${esc(a.url)}','${esc(a.title)}')">${esc(a.title.slice(0,30)+(a.title.length>30?'…':''))}</span></td>
+          <td style="font-size:11px;color:var(--gray-500)">${a.date}</td>
+          <td class="td-budget">${esc(a.budget||'—')}</td>
+          <td>${esc(a.reserve||'—')}</td>
+          <td class="td-award-amount">${esc(a.awarded||'—')}</td>
+          <td class="${ratioClass}">${a.ratio!==null?a.ratio+'%':'—'}</td>
+          <td class="${awardClass}">${a.awardRatio!==null?a.awardRatio+'%':'—'}</td>
+          <td style="font-size:11px">${esc((a.winner||'').slice(0,12))}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+// ═══ VENDOR ANALYSIS ═══
+const HOT_VENDORS=['裕利','力鋼工業','台灣鐵塔','巨路國際','谷源營造','東乘營造',
+  '瑋林營造','中興電工','聯進營造','邑川營造','廣大營造','宏聚營造',
+  '冠億土木工程','德勝營造','鑫盛達貿易','工業技術研究院','台灣電力','中華電信'];
+
+function initVendorPage(){
+  const grid=document.getElementById('hotVendorGrid');
+  grid.innerHTML=HOT_VENDORS.map(v=>`<button class="hot-vendor-btn" onclick="doVendorSearch('${esc(v)}')">${esc(v)}</button>`).join('');
+}
+
+async function doVendorSearch(query){
+  if(query)document.getElementById('vendorSearch').value=query;
+  const q=(query||document.getElementById('vendorSearch').value).trim();
+  if(!q){toast('請輸入廠商名稱');return;}
+
+  const resultEl=document.getElementById('vendorResult');
+  document.getElementById('vendorHotOrgs').style.display='none';
+  resultEl.innerHTML=`<div class="loading-overlay" style="margin-top:20px"><div class="spinner"></div><span style="font-size:12px;color:var(--gray-400)">正在分析「${esc(q)}」...</span></div>`;
+
+  try{
+    const res=await fetch(`${API}/searchbycompanyname?query=${encodeURIComponent(q)}&page=1`);
+    const data=await res.json();
+    const total=data.total_records||0;
+    const totalPages=Math.min(data.total_pages||1,5);
+    let records=data.records||[];
+
+    if(totalPages>1){
+      const more=await Promise.all(
+        Array.from({length:Math.min(totalPages-1,4)},(_,i)=>
+          fetch(`${API}/searchbycompanyname?query=${encodeURIComponent(q)}&page=${i+2}`).then(r=>r.json())
+        )
+      );
+      more.forEach(d=>{records=records.concat(d.records||[]);});
+    }
+
+    const awards=records.filter(r=>{const t=r.brief?.type||'';return t.includes('決標')&&!t.includes('無法');});
+    const orgs=new Map();
+    awards.forEach(r=>{const u=r.unit_name||'';if(u)orgs.set(u,(orgs.get(u)||0)+1);});
+    const topOrgs=[...orgs.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    const totalAmt=awards.reduce((s,r)=>{
+      const names=r.brief?.companies?.names||[];
+      if(names.some(n=>n.includes(q.slice(0,4)))){
+        // can't get actual amount from list record reliably
+      }
+      return s;
+    },0);
+
+    renderVendorResult(q,total,awards,topOrgs,records);
+  }catch(e){
+    resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">⚠️</div><h3>查詢失敗</h3><p>${esc(e.message)}</p></div>`;
+    document.getElementById('vendorHotOrgs').style.display='block';
+  }
+}
+
+function renderVendorResult(query,total,awards,topOrgs,allRecords){
+  const el=document.getElementById('vendorResult');
+  const tenders=allRecords.filter(r=>{const t=r.brief?.type||'';return(t.includes('招標')||t.includes('公開取得'))&&!t.includes('無法');});
+  const noaward=allRecords.filter(r=>(r.brief?.type||'').includes('無法決標'));
+  const winRate=allRecords.length?Math.round(awards.length/allRecords.length*100):0;
+
+  // get competitors from same award records
+  const competitors=new Map();
+  awards.forEach(r=>{
+    const names=r.brief?.companies?.names||[];
+    if(names.length>1){
+      names.filter(n=>!n.includes(query.slice(0,4))).forEach(n=>{
+        competitors.set(n,(competitors.get(n)||0)+1);
+      });
+    }
+  });
+  const topCompetitors=[...competitors.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  el.innerHTML=`
+  <div style="margin-top:20px">
+    <div class="va-result-header">
+      <button onclick="document.getElementById('vendorHotOrgs').style.display='block';document.getElementById('vendorResult').innerHTML=''" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-500)">← 返回</button>
+      <div class="va-result-title">廠商分析：${esc(query)}</div>
+    </div>
+    <div class="va-stat-row">
+      <div class="rp-stat"><div class="rs-label">查詢到標案</div><div class="rs-val">${total.toLocaleString()}</div><div class="rs-sub">筆記錄</div></div>
+      <div class="rp-stat"><div class="rs-label">得標次數</div><div class="rs-val">${awards.length}</div><div class="rs-sub">（樣本內）</div></div>
+      <div class="rp-stat"><div class="rs-label">無法決標</div><div class="rs-val">${noaward.length}</div><div class="rs-sub">筆</div></div>
+      <div class="rp-stat"><div class="rs-label">出現得標率</div><div class="rs-val">${winRate}%</div><div class="rs-sub">出現即得標比例</div></div>
+    </div>
+    ${topOrgs.length?`
+    <div class="va-section">
+      <div class="va-section-head">🏛️ 主要得標機關 Top ${topOrgs.length}</div>
+      <div class="va-section-body">
+        <div class="bar-chart">${topOrgs.map(([org,cnt])=>{
+          const maxCnt=topOrgs[0][1]||1;
+          const pct=Math.round(cnt/maxCnt*100);
+          return`<div class="bar-row">
+            <div class="bar-label" onclick="switchPage('reserve');document.getElementById('reserveSearch').value='${esc(org)}';doReserveSearch('${esc(org)}')">${esc(org.slice(0,20))}</div>
+            <div class="bar-track"><div class="bar-fill bar-fill-blue" style="width:${pct}%">${cnt}次</div></div>
+            <div class="bar-meta">${cnt} 筆</div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+    </div>`:''}
+    ${topCompetitors.length?`
+    <div class="va-section">
+      <div class="va-section-head">⚔️ 常見競爭對手 Top ${topCompetitors.length}</div>
+      <div class="va-section-body">
+        <div class="bar-chart">${topCompetitors.map(([comp,cnt])=>{
+          const maxCnt=topCompetitors[0][1]||1;
+          const pct=Math.round(cnt/maxCnt*100);
+          return`<div class="bar-row">
+            <div class="bar-label" onclick="doVendorSearch('${esc(comp)}')">${esc(comp.slice(0,20))}</div>
+            <div class="bar-track"><div class="bar-fill bar-fill-green" style="width:${pct}%">${cnt}次</div></div>
+            <div class="bar-meta">${cnt} 同場</div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+    </div>`:''}
+    <div class="va-section">
+      <div class="va-section-head">📋 近期得標記錄</div>
+      <div class="va-section-body" style="padding:0">
+        <table class="tender-table">
+          <thead><tr><th>案名</th><th>機關</th><th>公告日</th><th>類型</th></tr></thead>
+          <tbody>${awards.slice(0,20).map(r=>`<tr>
+            <td><span class="td-title" onclick="openDetailByUrl('${esc(r.tender_api_url)}','${esc(r.brief?.title||'')}')">${esc((r.brief?.title||'').slice(0,35)+(r.brief?.title?.length>35?'…':''))}</span></td>
+            <td class="td-unit">${esc((r.unit_name||'').slice(0,14))}</td>
+            <td style="font-size:11px;color:var(--gray-500)">${fmtDate(r.date)}</td>
+            <td><span class="td-method-badge tmb-price">決標</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══ DETAIL MODAL ═══
+async function openDetailByUrl(apiUrl,title){
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('mTitle').textContent=title||'載入中...';
+  document.getElementById('mBody').innerHTML=`<div class="loading-overlay"><div class="spinner"></div></div>`;
+  try{
+    const res=await fetch(apiUrl);
+    const data=await res.json();
+    const records=data.records||[];
+    if(!records.length)throw new Error('無詳細資料');
+    renderModal(records);
+  }catch(e){
+    document.getElementById('mBody').innerHTML=`<div class="empty"><div class="ei">⚠️</div><h3>載入失敗</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderModal(records){
+  const latest=records[0];
+  const d=latest.detail||{};
+  const type=dv(d,'type')||latest.brief?.type||'';
+  const title=dv(d,'採購資料:標案名稱')||latest.brief?.title||'（無標題）';
+  const isAward=type.includes('決標');
+  const {badge}=getTypeInfo(type);
+  document.getElementById('mTitle').innerHTML=`<span class="td-method-badge ${badge}" style="margin-bottom:4px;display:inline-flex;">${esc(type)}</span><br>${esc(title)}`;
+
+  const sec=(t,items)=>{
+    const valid=items.filter(it=>it.v&&String(it.v).trim()&&String(it.v)!=='否'&&String(it.v)!=='不公開');
+    if(!valid.length)return'';
+    return`<div class="msec"><div class="msec-title">${t}</div><div class="mgrid">${valid.map(it=>`<div class="mitem ${it.f?'full':''}"><div class="mkey">${esc(it.k)}</div><div class="${it.b?'mval-big':'mval'}">${esc(it.v)}</div></div>`).join('')}</div></div>`;
   };
 
-  const companiesHtml = companies.length ? `
-    <div class="detail-section">
-      <div class="detail-section-title">投標廠商（${companies.length}家）</div>
-      <div class="companies-list">${companies.map(c => `
-        <div class="company-row ${c.isWinner?'':'loser'}">
-          <div class="company-name">${c.isWinner?'🏆 ':''}${escHtml(c.name)}${c.isSME?' <span style="font-size:10px;color:var(--gray-400)">(中小企業)</span>':''}</div>
-          ${c.amount ? `<div class="company-amount">決標：${escHtml(c.amount)}</div>` : ''}
-          ${c.addr ? `<div class="company-addr">📍 ${escHtml(c.addr)}</div>` : ''}
-          ${c.phone ? `<div class="company-addr">📞 ${escHtml(c.phone)}</div>` : ''}
-        </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  const historyHtml = records.length > 1 ? `
-    <div class="detail-section">
-      <div class="detail-section-title">本案歷史公告（${records.length} 筆）</div>
-      <div class="history-list">${records.map((r, idx) => `
-        <div class="history-row" onclick="switchModalRecord(${idx})">
-          <div class="history-type">${escHtml(r.brief?.type || '公告')}</div>
-          <div class="history-date">${fmtDate(r.date)}</div>
-        </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  // PCC original URL
-  const pccUrl = dv('url');
-  const linksHtml = `<div style="padding-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-    ${pccUrl ? `<a class="detail-link" href="${escHtml(pccUrl)}" target="_blank" rel="noopener">↗ 查看原始公告</a>` : ''}
-    ${noticeUrl ? `<a class="detail-download-link" href="${escHtml(noticeUrl)}" target="_blank" rel="noopener">📄 投標須知</a>` : ''}
-  </div>`;
-
-  // Store records for history switching
-  window._modalRecords = records;
-
-  document.getElementById('modalBody').innerHTML =
-    sectionHtml('採購資訊', procItems) +
-    sectionHtml('金額資訊', budgetItems) +
-    sectionHtml('機關資訊', orgItems) +
-    companiesHtml +
-    historyHtml +
-    linksHtml;
-}
-
-function switchModalRecord(idx) {
-  if (window._modalRecords && window._modalRecords[idx]) {
-    renderModal([window._modalRecords[idx], ...window._modalRecords.filter((_,i)=>i!==idx)]);
+  const num=parseInt(dv(d,'投標廠商:投標廠商家數'))||latest.brief?.companies?.names?.length||0;
+  const companies=[];
+  for(let i=1;i<=Math.max(num,latest.brief?.companies?.names?.length||0);i++){
+    const name=dv(d,`投標廠商:投標廠商${i}:廠商名稱`)||latest.brief?.companies?.names?.[i-1]||'';
+    if(!name)continue;
+    companies.push({name,winner:dv(d,`投標廠商:投標廠商${i}:是否得標`)==='是',amount:dv(d,`投標廠商:投標廠商${i}:決標金額`),addr:dv(d,`投標廠商:投標廠商${i}:廠商地址`),phone:dv(d,`投標廠商:投標廠商${i}:廠商電話`),sme:dv(d,`投標廠商:投標廠商${i}:是否為中小企業`)==='是'});
   }
+
+  const noticeUrl=dv(d,'領投開標:是否提供電子領標:投標須知下載');
+  const pccUrl=dv(d,'url');
+  window._modalRecords=records;
+
+  document.getElementById('mBody').innerHTML=
+    sec('採購資訊',[
+      {k:'案號',v:dv(d,'採購資料:標案案號')},{k:'公告日期',v:dv(d,'招標資料:公告日')||fmtDate(latest.date)},
+      {k:'開標時間',v:dv(d,'採購資料:開標時間')||dv(d,'領投開標時間')},{k:'截止投標',v:dv(d,'領投開標:截止投標')},
+      {k:'招標方式',v:dv(d,'採購資料:招標方式')||dv(d,'招標資料:招標方式')},{k:'決標方式',v:dv(d,'採購資料:決標方式')||dv(d,'招標資料:決標方式')},
+      {k:'標的分類',v:dv(d,'採購資料:標的分類'),f:true},{k:'採購金額級距',v:dv(d,'採購資料:採購金額級距')},{k:'履約地點',v:dv(d,'採購資料:履約地點')},
+    ])+
+    sec('金額資訊',[
+      {k:'預算金額',v:dv(d,'採購資料:預算金額'),b:true},{k:'底價金額',v:dv(d,'決標資料:底價金額')},
+      {k:'總決標金額',v:dv(d,'決標資料:總決標金額'),b:true},{k:'決標日期',v:dv(d,'決標資料:決標日期')},
+    ])+
+    sec('機關資訊',[
+      {k:'機關名稱',v:dv(d,'機關資料:機關名稱'),f:true},{k:'單位',v:dv(d,'機關資料:單位名稱')},
+      {k:'地址',v:dv(d,'機關資料:機關地址'),f:true},{k:'聯絡人',v:dv(d,'機關資料:聯絡人')},
+      {k:'電話',v:dv(d,'機關資料:聯絡電話')},{k:'Email',v:dv(d,'機關資料:電子郵件信箱'),f:true},
+    ])+
+    (companies.length?`<div class="msec"><div class="msec-title">投標廠商（${companies.length}家）</div><div class="clist">${companies.map(c=>`<div class="crow ${c.winner?'':'loser'}"><div class="cname">${c.winner?'🏆 ':''}${esc(c.name)}${c.sme?' <span style="font-size:10px;color:var(--gray-400)">(中小企業)</span>':''}</div>${c.amount?`<div class="camount">決標：${esc(c.amount)}</div>`:''}${c.addr?`<div class="caddr">📍 ${esc(c.addr)}</div>`:''}</div>`).join('')}</div></div>`:'')+
+    (records.length>1?`<div class="msec"><div class="msec-title">本案歷史公告（${records.length}筆）</div><div class="clist">${records.map((r,i)=>`<div class="crow" style="cursor:pointer;border-left-color:var(--blue)" onclick="renderModal([window._modalRecords[${i}],...window._modalRecords.filter((_,j)=>j!==${i})])"><div class="cname">${esc(r.brief?.type||'公告')}</div><div class="camount">${fmtDate(r.date)}</div></div>`).join('')}</div></div>`:'')+
+    `<div style="padding-top:4px;display:flex;flex-wrap:wrap;gap:6px">
+      ${pccUrl?`<a class="modal-link" href="${esc(pccUrl)}" target="_blank" rel="noopener">↗ 查看原始公告</a>`:''}
+      ${noticeUrl?`<a class="modal-link modal-link-dl" href="${esc(noticeUrl)}" target="_blank" rel="noopener">📄 投標須知</a>`:''}
+    </div>`;
 }
 
-// ── Modal Close ───────────────────────────────
-function closeModal() {
-  document.getElementById('modalOverlay').style.display = 'none';
-}
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
-// ── Search Trigger ─────────────────────────────
-document.getElementById('searchBtn').addEventListener('click', () => {
-  state.allDateRecords = [];
-  doSearch(document.getElementById('searchInput').value, 1);
-});
-document.getElementById('searchInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    state.allDateRecords = [];
-    doSearch(document.getElementById('searchInput').value, 1);
-  }
-});
-
-// ── Init ──────────────────────────────────────
-renderKeywords();
-// Auto-load first keyword
-if (state.keywords.length) {
-  document.getElementById('searchInput').value = state.keywords[0];
-  doSearch(state.keywords[0], 1);
-}
+// ═══ INIT ═══
+(function init(){
+  initReservePage();
+  initVendorPage();
+  loadDashboard();
+  document.getElementById('reserveSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doReserveSearch();});
+  document.getElementById('vendorSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doVendorSearch();});
+})();
 </script>
 </body>
 </html>
