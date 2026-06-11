@@ -838,6 +838,22 @@ function initReservePage(){
   grid.innerHTML=HOT_ORGS.map(o=>`<button class="hot-org-btn" onclick="doReserveSearch('${esc(o)}')">${esc(o)}</button>`).join('');
 }
 
+async function batchFetch(urls,batchSize=4,delayMs=300){
+  const results=[];
+  for(let i=0;i<urls.length;i+=batchSize){
+    const batch=urls.slice(i,i+batchSize);
+    const br=await Promise.allSettled(batch.map(url=>
+      fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    ));
+    results.push(...br);
+    if(i+batchSize<urls.length) await new Promise(r=>setTimeout(r,delayMs));
+  }
+  return results;
+}
+
+// Reserve page state
+const RS={unitId:null,unitName:'',allAwards:[],analyzedDetails:[],currentView:'list'};
+
 async function doReserveSearch(query){
   if(query)document.getElementById('reserveSearch').value=query;
   const q=(query||document.getElementById('reserveSearch').value).trim();
@@ -845,41 +861,110 @@ async function doReserveSearch(query){
 
   const resultEl=document.getElementById('reserveResult');
   document.getElementById('reserveHotOrgs').style.display='none';
-  resultEl.innerHTML=`<div class="loading-overlay" style="margin-top:20px"><div class="spinner"></div><span style="font-size:12px;color:var(--gray-400)">正在分析「${esc(q)}」的底價資料...</span></div>`;
+  resultEl.innerHTML=rpLoading(`正在搜尋「${esc(q)}」...`);
 
   try{
-    // fetch multiple pages of award records for this unit
-    const res=await fetch(`${API}/listbyunit?unit_name=${encodeURIComponent(q)}&page=1`);
+    // Step 1: find unit_id via searchbytitle
+    const res=await fetch(API+'/searchbytitle?query='+encodeURIComponent(q)+'&page=1');
+    if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    const totalPages=Math.min(data.total_page||1,5); // max 5 pages
-    let allRecords=data.records||[];
+    const records=data.records||[];
 
-    if(totalPages>1){
-      const morePages=await Promise.all(
-        Array.from({length:Math.min(totalPages-1,4)},(_,i)=>
-          fetch(`${API}/listbyunit?unit_name=${encodeURIComponent(q)}&page=${i+2}`).then(r=>r.json())
-        )
-      );
-      morePages.forEach(d=>{allRecords=allRecords.concat(d.records||[]);});
-    }
-
-    // filter only award records with companies
-    const awards=allRecords.filter(r=>{
-      const t=r.brief?.type||'';
-      return t.includes('決標')&&!t.includes('無法')&&r.brief?.companies?.names?.length>0;
+    // Group by unit_id, pick the one with most hits
+    const unitMap={};
+    records.forEach(r=>{
+      const uid=r.unit_id, uname=r.unit_name||uid;
+      if(!uid)return;
+      if(!unitMap[uid])unitMap[uid]={uid,uname,count:0};
+      unitMap[uid].count++;
     });
+    const sorted=Object.values(unitMap).sort((a,b)=>b.count-a.count);
 
-    if(!awards.length){
-      resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">🔍</div><h3>找不到「${esc(q)}」的決標記錄</h3><p>請嘗試其他關鍵字</p></div>`;
+    if(!sorted.length){
+      resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">🔍</div><h3>找不到「${esc(q)}」相關機關</h3><p>請嘗試更精確的機關名稱</p></div>`;
       document.getElementById('reserveHotOrgs').style.display='block';
       return;
     }
 
-    // Fetch detail for first 30 to get reserve prices
-    const sample=awards.slice(0,30);
-    const details=await Promise.allSettled(sample.map(r=>fetch(r.tender_api_url).then(d=>d.json())));
+    // If multiple units found, show selection list
+    if(sorted.length>1&&sorted[0].count<records.length*0.5){
+      renderUnitSelectList(sorted.slice(0,15),q);
+      return;
+    }
+
+    // Single best match → go straight to analysis
+    const best=sorted[0];
+    await loadReserveForUnit(best.uid,best.uname);
+  }catch(e){
+    resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">⚠️</div><h3>搜尋失敗</h3><p>${esc(e.message)}</p></div>`;
+    document.getElementById('reserveHotOrgs').style.display='block';
+  }
+}
+
+function rpLoading(msg){
+  return `<div class="loading-overlay" style="margin-top:20px"><div class="spinner"></div><span style="font-size:12px;color:var(--gray-400)">${msg}</span></div>`;
+}
+
+function renderUnitSelectList(units,q){
+  const resultEl=document.getElementById('reserveResult');
+  resultEl.innerHTML=`
+  <div style="margin-top:16px">
+    <div style="font-size:13px;color:var(--gray-500);margin-bottom:12px">找到 ${units.length} 個相關機關，請選擇：</div>
+    <table class="rp-table">
+      <thead><tr><th>採購機關</th><th>統計案件數</th></tr></thead>
+      <tbody>${units.map(u=>`
+        <tr style="cursor:pointer" onclick="loadReserveForUnit('${esc(u.uid)}','${esc(u.uname)}')">
+          <td class="td-title">${esc(u.uname)}</td>
+          <td>${u.count}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+async function loadReserveForUnit(unitId,unitName){
+  RS.unitId=unitId;
+  RS.unitName=unitName;
+  RS.allAwards=[];
+  RS.analyzedDetails=[];
+
+  const resultEl=document.getElementById('reserveResult');
+  resultEl.innerHTML=rpLoading(`正在載入「${esc(unitName)}」的決標資料...`);
+
+  try{
+    // Fetch up to 3 pages from listbyunit
+    const first=await fetch(API+'/listbyunit?unit_id='+encodeURIComponent(unitId)+'&page=1');
+    if(!first.ok)throw new Error('HTTP '+first.status);
+    const fd=await first.json();
+    const realName=fd.unit_name||unitName;
+    RS.unitName=realName;
+    const totalPage=Math.min(fd.total_page||1,3);
+    let all=fd.records||[];
+
+    for(let p=2;p<=totalPage;p++){
+      await new Promise(r=>setTimeout(r,200));
+      const rp=await fetch(API+'/listbyunit?unit_id='+encodeURIComponent(unitId)+'&page='+p);
+      const dp=await rp.json();
+      all=all.concat(dp.records||[]);
+    }
+
+    const awards=all.filter(r=>{const t=r.brief?.type||'';return t.includes('決標')&&!t.includes('無法');});
+    RS.allAwards=awards;
+
+    if(!awards.length){
+      resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">🔍</div><h3>找不到「${esc(realName)}」的決標記錄</h3></div>`;
+      document.getElementById('reserveHotOrgs').style.display='block';
+      return;
+    }
+
+    resultEl.innerHTML=rpLoading(`找到 ${awards.length} 筆決標，批次抓取底價資料（最多分析 24 筆）...`);
+
+    // Fetch details in batches of 4
+    const sample=awards.slice(0,24);
+    const detResults=await batchFetch(sample.map(r=>r.tender_api_url),4,350);
+
     const analyzed=[];
-    details.forEach((res,i)=>{
+    detResults.forEach((res,i)=>{
       if(res.status!=='fulfilled')return;
       const rec=res.value.records?.[0];
       if(!rec)return;
@@ -887,92 +972,149 @@ async function doReserveSearch(query){
       const budget=parseAmt(dv(d,'採購資料:預算金額'));
       const reserve=parseAmt(dv(d,'決標資料:底價金額'));
       const awarded=parseAmt(dv(d,'決標資料:總決標金額')||dv(d,'投標廠商:投標廠商1:決標金額'));
-      if(!budget&&!awarded)return;
+      const num=parseInt(dv(d,'投標廠商:投標廠商家數'))||0;
+
+      // collect vendors
+      const vendors=[];
+      for(let vi=1;vi<=Math.max(num,sample[i].brief?.companies?.names?.length||0);vi++){
+        const vn=dv(d,`投標廠商:投標廠商${vi}:廠商名稱`)||sample[i].brief?.companies?.names?.[vi-1]||'';
+        const vw=dv(d,`投標廠商:投標廠商${vi}:是否得標`)==='是';
+        const va=parseAmt(dv(d,`投標廠商:投標廠商${vi}:決標金額`));
+        if(vn) vendors.push({name:vn,win:vw,amt:va});
+      }
+
       const ratio=reserve&&budget?Math.round(reserve/budget*100):null;
       const awardRatio=awarded&&(reserve||budget)?Math.round(awarded/(reserve||budget)*100):null;
+      const unitSub=dv(d,'機關資料:單位名稱');
+
       analyzed.push({
         title:dv(d,'採購資料:標案名稱')||sample[i].brief?.title||'',
         date:fmtDate(sample[i].date),
+        year:String(sample[i].date).slice(0,4),
         budget:dv(d,'採購資料:預算金額'),
+        budgetAmt:budget,
         reserve:dv(d,'決標資料:底價金額'),
+        reserveAmt:reserve,
         awarded:dv(d,'決標資料:總決標金額'),
+        awardedAmt:awarded,
         ratio,awardRatio,
-        winner:sample[i].brief?.companies?.names?.[0]||'',
-        url:rec.tender_api_url||sample[i].tender_api_url,
+        vendors,
+        unitSub,
+        url:sample[i].tender_api_url,
       });
     });
 
-    renderReserveResult(q,awards.length,analyzed,data.unit_name||q);
+    RS.analyzedDetails=analyzed;
+    renderReserveAnalysis();
   }catch(e){
     resultEl.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">⚠️</div><h3>分析失敗</h3><p>${esc(e.message)}</p></div>`;
     document.getElementById('reserveHotOrgs').style.display='block';
   }
 }
 
-function renderReserveResult(query,totalAwards,analyzed,unitName){
-  const el=document.getElementById('reserveResult');
-  if(!analyzed.length){
-    el.innerHTML=`<div class="empty" style="margin-top:20px"><div class="ei">📊</div><h3>找不到足夠的底價資料</h3><p>此機關的決標公告未公開底價</p></div>`;
-    return;
-  }
+function renderReserveAnalysis(){
+  const {unitName,allAwards,analyzedDetails}=RS;
+  const resultEl=document.getElementById('reserveResult');
+  const analyzed=analyzedDetails;
 
+  // Compute stats
   const withRatio=analyzed.filter(a=>a.ratio!==null);
   const avgRatio=withRatio.length?Math.round(withRatio.reduce((s,a)=>s+a.ratio,0)/withRatio.length):null;
   const withAward=analyzed.filter(a=>a.awardRatio!==null);
   const avgAward=withAward.length?Math.round(withAward.reduce((s,a)=>s+a.awardRatio,0)/withAward.length):null;
-  const underBudget=analyzed.filter(a=>a.ratio&&a.ratio<100).length;
 
-  el.innerHTML=`
+  // Group by unitSub (sub-unit) for the "機關清單" view like screenshot 1
+  const subUnitMap={};
+  analyzed.forEach(a=>{
+    const sub=a.unitSub||'（未分類）';
+    if(!subUnitMap[sub])subUnitMap[sub]={sub,count:0,ratioSum:0,ratioCount:0};
+    subUnitMap[sub].count++;
+    if(a.ratio!==null){subUnitMap[sub].ratioSum+=a.ratio;subUnitMap[sub].ratioCount++;}
+  });
+  const subUnits=Object.values(subUnitMap)
+    .map(u=>({...u,avgRatio:u.ratioCount?Math.round(u.ratioSum/u.ratioCount):null}))
+    .sort((a,b)=>b.count-a.count);
+
+  // Vendor competition analysis (like screenshot 2)
+  const vendorMap={};
+  analyzed.forEach(a=>{
+    a.vendors.forEach(v=>{
+      if(!v.name)return;
+      if(!vendorMap[v.name])vendorMap[v.name]={name:v.name,bids:0,wins:0,totalAmt:0};
+      vendorMap[v.name].bids++;
+      if(v.win){vendorMap[v.name].wins++;vendorMap[v.name].totalAmt+=v.amt||0;}
+    });
+  });
+  const topVendors=Object.values(vendorMap).sort((a,b)=>b.wins-a.wins).slice(0,10);
+
+  resultEl.innerHTML=`
   <div class="rp-result">
     <div class="rp-result-header">
       <button onclick="document.getElementById('reserveHotOrgs').style.display='block';document.getElementById('reserveResult').innerHTML=''" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-500)">← 返回</button>
-      <div class="rp-result-title">底價分析：${esc(unitName||query)}</div>
-      <div class="badge tmb-open" style="font-size:11px">共 ${totalAwards} 筆決標</div>
+      <div class="rp-result-title">🏛️ ${esc(unitName)}</div>
     </div>
-    <div class="rp-stat-row">
-      <div class="rp-stat"><div class="rs-label">分析樣本</div><div class="rs-val">${analyzed.length} 筆</div><div class="rs-sub">近期決標</div></div>
-      <div class="rp-stat"><div class="rs-label">底價/預算 平均比</div><div class="rs-val">${avgRatio!==null?avgRatio+'%':'N/A'}</div><div class="rs-sub">底價通常低於預算</div></div>
-      <div class="rp-stat"><div class="rs-label">決標/底價 平均比</div><div class="rs-val">${avgAward!==null?avgAward+'%':'N/A'}</div><div class="rs-sub">競爭激烈程度指標</div></div>
-      <div class="rp-stat"><div class="rs-label">底價低於預算</div><div class="rs-val">${underBudget} 筆</div><div class="rs-sub">佔樣本 ${withRatio.length?Math.round(underBudget/withRatio.length*100):0}%</div></div>
+
+    <!-- Stats row (like screenshot 2) -->
+    <div class="rp-stat-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="rp-stat"><div class="rs-label">總決標筆數（本次分析）</div><div class="rs-val">${allAwards.length.toLocaleString()}</div><div class="rs-sub">完整決標記錄</div></div>
+      <div class="rp-stat"><div class="rs-label">底價 / 預算 平均比</div><div class="rs-val">${avgRatio!==null?avgRatio+'%':'N/A'}</div><div class="rs-sub">越低代表底價保留空間越大</div></div>
+      <div class="rp-stat"><div class="rs-label">決標 / 底價 平均比</div><div class="rs-val">${avgAward!==null?avgAward+'%':'N/A'}</div><div class="rs-sub">越接近100%競標越激烈</div></div>
     </div>
+
+    <!-- Sub-unit breakdown (like screenshot 1: 採購機關 | 單位 | 底價=預算的% | 案件數) -->
+    ${subUnits.length>1?`
+    <div class="rp-chart-area" style="margin-bottom:14px">
+      <div class="rp-chart-title">各單位採購統計</div>
+      <table class="rp-table">
+        <thead><tr><th>採購機關</th><th>單位</th><th>底價＝預算的</th><th>統計案件數 ↓</th></tr></thead>
+        <tbody>${subUnits.map(u=>`<tr>
+          <td style="font-size:12px">${esc(unitName)}</td>
+          <td style="font-size:12px">${esc(u.sub)}</td>
+          <td><span class="${u.avgRatio>=95?'ratio-warn':u.avgRatio>=85?'ratio-good':'ratio-bad'}">${u.avgRatio!==null?u.avgRatio+'%':'—'}</span></td>
+          <td style="font-weight:600">${u.count}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`:''}
+
+    <!-- Vendor competition table (like screenshot 2: 您可能遇到的主要競標對手) -->
+    ${topVendors.length?`
+    <div class="rp-chart-area" style="margin-bottom:14px">
+      <div class="rp-chart-title">主要競標廠商分析</div>
+      <table class="rp-table">
+        <thead><tr><th>廠商名稱</th><th>總投標數</th><th>得標數</th><th>得標率</th><th>總得標金額</th></tr></thead>
+        <tbody>${topVendors.map(v=>`<tr>
+          <td style="font-weight:500">${esc(v.name)}</td>
+          <td>${v.bids}</td>
+          <td>${v.wins}</td>
+          <td><span class="${Math.round(v.wins/v.bids*100)>=90?'ratio-warn':Math.round(v.wins/v.bids*100)>=60?'ratio-good':'ratio-bad'}">${Math.round(v.wins/v.bids*100)}%</span></td>
+          <td class="td-award-amount">${v.totalAmt>0?fmtAmt(v.totalAmt):'—'}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`:''}
+
+    <!-- Detail table (like screenshot 3) -->
     <div class="rp-chart-area">
-      <div class="rp-chart-title">近期決標金額分析（樣本 ${analyzed.length} 筆）</div>
-      <div class="bar-chart">
-        ${analyzed.slice(0,15).map(a=>{
-          const maxAmt=Math.max(...analyzed.slice(0,15).map(x=>parseAmt(x.awarded||x.budget)||0))||1;
-          const bAmt=parseAmt(a.budget)||0;
-          const rAmt=parseAmt(a.reserve)||0;
-          const aAmt=parseAmt(a.awarded)||0;
-          const bPct=Math.min(100,Math.round(bAmt/maxAmt*100));
-          const aPct=Math.min(100,Math.round(aAmt/maxAmt*100));
-          return`<div class="bar-row">
-            <div class="bar-label" title="${esc(a.title)}" onclick="openDetailByUrl('${esc(a.url)}','${esc(a.title)}')">${esc(a.title.slice(0,24)+(a.title.length>24?'…':''))}</div>
-            <div class="bar-track" style="position:relative">
-              <div class="bar-fill bar-fill-blue" style="width:${bPct}%;position:absolute;opacity:.3"></div>
-              <div class="bar-fill bar-fill-green" style="width:${aPct}%">${aAmt>0?fmtAmt(aAmt):''}</div>
-            </div>
-            <div class="bar-meta">${a.ratio!==null?`底價${a.ratio}%`:''}</div>
-          </div>`;
-        }).join('')}
+      <div class="rp-chart-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>底價詳情（${analyzed.length} 筆）</span>
+        <span style="font-size:11px;color:var(--gray-400)">樣本分析，非全量資料</span>
       </div>
-    </div>
-    <table class="rp-table">
-      <thead><tr><th>案名</th><th>公告日</th><th>預算</th><th>底價</th><th>決標金額</th><th>底價/預算</th><th>決標/底價</th><th>得標廠商</th></tr></thead>
-      <tbody>${analyzed.map(a=>{
-        const ratioClass=a.ratio===null?'':(a.ratio>=95?'ratio-warn':(a.ratio>=85?'ratio-good':'ratio-bad'));
-        const awardClass=a.awardRatio===null?'':(a.awardRatio>=95?'ratio-warn':(a.awardRatio>=80?'ratio-good':'ratio-bad'));
-        return`<tr>
-          <td><span class="td-title" onclick="openDetailByUrl('${esc(a.url)}','${esc(a.title)}')">${esc(a.title.slice(0,30)+(a.title.length>30?'…':''))}</span></td>
-          <td style="font-size:11px;color:var(--gray-500)">${a.date}</td>
+      <table class="rp-table">
+        <thead><tr><th>採購機關</th><th>單位</th><th>案名</th><th>底價</th><th>預算</th><th>底價＝預算的</th><th>本案決標金</th><th>公告 ↓</th></tr></thead>
+        <tbody>${analyzed.map(a=>`<tr>
+          <td style="font-size:11px">${esc(unitName)}</td>
+          <td style="font-size:11px">${esc(a.unitSub||'')}</td>
+          <td><span class="td-title" onclick="openDetailByUrl('${esc(a.url)}','${esc(a.title)}')">${esc(a.title.slice(0,28)+(a.title.length>28?'…':''))}</span></td>
+          <td style="font-size:12px">${esc(a.reserve||'—')}</td>
           <td class="td-budget">${esc(a.budget||'—')}</td>
-          <td>${esc(a.reserve||'—')}</td>
+          <td><span class="${a.ratio===null?'':(a.ratio>=95?'ratio-warn':a.ratio>=85?'ratio-good':'ratio-bad')}">${a.ratio!==null?a.ratio+'%':'—'}</span></td>
           <td class="td-award-amount">${esc(a.awarded||'—')}</td>
-          <td class="${ratioClass}">${a.ratio!==null?a.ratio+'%':'—'}</td>
-          <td class="${awardClass}">${a.awardRatio!==null?a.awardRatio+'%':'—'}</td>
-          <td style="font-size:11px">${esc((a.winner||'').slice(0,12))}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table>
+          <td style="font-size:11px;color:var(--gray-500)">${a.date}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
   </div>`;
 }
 
