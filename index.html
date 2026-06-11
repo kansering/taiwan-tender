@@ -562,21 +562,53 @@ document.getElementById('topSearch').addEventListener('keydown',e=>{
 
 // ═══ DASHBOARD ═══
 async function loadDashboard(){
-  const today=getTodayStr();
-  S.todayStr=today;
-  // Update date display
-  const d=new Date();
-  document.getElementById('topDate').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  // 自動找最近有資料的日期（最多往回找7天）
+  async function findLatestDate(){
+    for(let i=0;i<7;i++){
+      const d=new Date();
+      d.setDate(d.getDate()-i);
+      const str=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+      const res=await fetch(`${API}/listbydate?date=${str}`);
+      const data=await res.json();
+      if((data.records||[]).length>0) return{str,data,date:d};
+    }
+    return null;
+  }
+
+  // Update date display (今天日期，不論資料日期)
+  const now=new Date();
+  document.getElementById('topDate').textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
 
   try{
-    const res=await fetch(`${API}/listbydate?date=${today}`);
-    const data=await res.json();
+    const found=await findLatestDate();
+    if(!found){
+      document.getElementById('wl-tender').innerHTML=`<div class="empty"><p>暫無資料</p></div>`;
+      document.getElementById('wl-award').innerHTML=`<div class="empty"><p>暫無資料</p></div>`;
+      document.getElementById('wl-vendor').innerHTML=`<div class="empty"><p>暫無資料</p></div>`;
+      return;
+    }
+
+    const {str:dataDate,data,date:dataDateObj}=found;
+    S.todayStr=dataDate;
+    const isToday=dataDate===getTodayStr();
+    const dateLabel=isToday?'今日':`${dataDateObj.getMonth()+1}/${dataDateObj.getDate()}`;
+
     const records=data.records||[];
     const tender=records.filter(r=>{const t=r.brief?.type||'';return(t.includes('招標')||t.includes('公開取得'))&&!t.includes('無法');});
     const award=records.filter(r=>{const t=r.brief?.type||'';return t.includes('決標')&&!t.includes('無法');});
     const noaward=records.filter(r=>(r.brief?.type||'').includes('無法決標'));
     const vendors=new Set();
     award.forEach(r=>r.brief?.companies?.names?.forEach(n=>vendors.add(n)));
+
+    // 更新 stat card 標題（如果不是今天，顯示日期）
+    if(!isToday){
+      document.querySelectorAll('.stat-label').forEach((el,i)=>{
+        const labels=[`${dateLabel} 招標`,`${dateLabel} 決標`,`${dateLabel} 得標廠商`,`${dateLabel} 無法決標`];
+        if(labels[i]) el.textContent=labels[i];
+      });
+      document.getElementById('wc-tender').previousElementSibling.previousElementSibling.textContent=`${dateLabel}最新招標`;
+      document.getElementById('wc-award').previousElementSibling.previousElementSibling.textContent=`${dateLabel}最新決標`;
+    }
 
     document.getElementById('s-tender').textContent=tender.length.toLocaleString();
     document.getElementById('s-award').textContent=award.length.toLocaleString();
