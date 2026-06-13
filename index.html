@@ -260,8 +260,17 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
 .empty p{font-size:12px;}
 
 /* Toast */
-.toast{position:fixed;bottom:18px;right:18px;background:var(--gray-900);color:white;padding:9px 14px;border-radius:6px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast{position:fixed;bottom:70px;right:12px;background:var(--gray-900);color:white;padding:9px 14px;border-radius:6px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;}
 .toast.show{opacity:1;}
+
+/* ── Bottom Navigation (mobile only) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--sidebar-bg);border-top:1px solid rgba(255,255,255,.08);z-index:300;align-items:stretch;}
+.bn-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:rgba(255,255,255,.45);font-family:inherit;position:relative;padding:4px 2px;}
+.bn-btn.active{color:#60A5FA;}
+.bn-btn .bn-icon{font-size:18px;line-height:1;}
+.bn-btn .bn-label{font-size:9px;font-weight:600;}
+.bn-btn .bn-badge{position:absolute;top:6px;right:calc(50% - 14px);min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:9px;font-weight:700;color:white;display:none;align-items:center;justify-content:center;padding:0 2px;}
+.bn-btn .bn-badge.show{display:flex;}
 
 /* ── Sidebar notification badge ── */
 .sb-badge{position:absolute;top:5px;right:5px;min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:9px;font-weight:700;color:white;display:none;align-items:center;justify-content:center;padding:0 2px;line-height:1;}
@@ -293,6 +302,47 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
   .hot-vendor-grid{grid-template-columns:repeat(3,1fr);}
   .filter-panel{display:none;}
   .modal-panel{width:100vw;}
+}
+
+/* ── Mobile (≤ 640px) ── */
+@media(max-width:640px){
+  /* Hide desktop sidebar */
+  .sidebar{display:none;}
+
+  /* Bottom navigation */
+  .bottom-nav{display:flex;}
+
+  /* Body layout: fill height minus bottom nav */
+  body{flex-direction:column;}
+  .main{flex:1;min-height:0;padding-bottom:56px;}
+
+  /* Topbar: hide title & date, full-width search */
+  .topbar{padding:0 10px;gap:8px;}
+  .topbar-title{display:none;}
+  .topbar-date{display:none;}
+  .topbar-search{max-width:none;flex:1;}
+  .topbar-search input{padding:7px 10px 7px 30px;font-size:13px;}
+  .topbar-search .ts-icon{left:8px;}
+
+  /* Content padding */
+  .content{padding:12px 10px;}
+
+  /* Dashboard banner */
+  .dash-banner{padding:14px 16px;}
+  .dash-banner-text h2{font-size:16px;}
+  .dash-banner-text p{font-size:12px;}
+
+  /* Stat grid: 2 cols */
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .stat-info .stat-num{font-size:18px;}
+
+  /* Table: allow horizontal scroll */
+  .list-main{overflow-x:auto;}
+  .tender-table{min-width:600px;}
+
+  /* Analysis search bars */
+  .analysis-search-bar{padding:10px 12px;}
+  .asb-input{font-size:13px;}
 }
 </style>
 </head>
@@ -512,6 +562,16 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
 
 <div class="toast" id="toast"></div>
 
+<!-- Bottom Navigation (mobile) -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bn-btn active" data-page="dashboard"><span class="bn-icon">⊞</span><span class="bn-label">總覽</span></button>
+  <button class="bn-btn" data-page="tender"><span class="bn-icon">📋</span><span class="bn-label">招標</span></button>
+  <button class="bn-btn" data-page="award"><span class="bn-icon">✅</span><span class="bn-label">決標</span></button>
+  <button class="bn-btn" data-page="reserve"><span class="bn-icon">💰</span><span class="bn-label">底價</span></button>
+  <button class="bn-btn" data-page="vendor"><span class="bn-icon">🏢</span><span class="bn-label">廠商</span></button>
+  <button class="bn-btn" data-page="watchlist"><span class="bn-icon">🔔</span><span class="bn-label">追蹤</span><span class="bn-badge" id="wl-badge-bn"></span></button>
+</nav>
+
 <script>
 const API='https://pcc-api.openfun.app/api';
 
@@ -578,14 +638,15 @@ function getDateRange(key){
 }
 
 // ═══ Navigation ═══
-document.querySelectorAll('.sb-btn[data-page]').forEach(btn=>{
+document.querySelectorAll('.sb-btn[data-page],.bn-btn[data-page]').forEach(btn=>{
   btn.addEventListener('click',()=>switchPage(btn.dataset.page));
 });
 function switchPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sb-btn,.bn-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`page-${page}`)?.classList.add('active');
   document.querySelector(`.sb-btn[data-page="${page}"]`)?.classList.add('active');
+  document.querySelector(`.bn-btn[data-page="${page}"]`)?.classList.add('active');
   S.activePage=page;
   const titles={dashboard:'總覽儀表板',tender:'招標',award:'決標',reserve:'底價分析',vendor:'廠商分析',watchlist:'關鍵字追蹤'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
@@ -1501,11 +1562,15 @@ function renderWatchlistMatches(){
 }
 
 function updateWatchlistBadge(){
-  const badge=document.getElementById('wl-badge');
-  if(!badge)return;
   const cnt=WL.matches.length;
-  if(cnt>0){badge.textContent=cnt>9?'9+':cnt;badge.classList.add('show');}
-  else badge.classList.remove('show');
+  const show=cnt>0;
+  const txt=cnt>9?'9+':String(cnt);
+  ['wl-badge','wl-badge-bn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.textContent=txt;
+    if(show)el.classList.add('show');else el.classList.remove('show');
+  });
 }
 
 function scanWatchlist(allRecords,dateLabel){
