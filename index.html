@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -312,18 +313,18 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
         </div>
       </div>
       <div class="stat-grid" id="statGrid">
-        <div class="stat-card"><div class="stat-icon si-blue">📋</div><div class="stat-info"><div class="stat-label">今日招標</div><div class="stat-num" id="s-tender">—</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-green">✅</div><div class="stat-info"><div class="stat-label">今日決標</div><div class="stat-num" id="s-award">—</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-amber">🏢</div><div class="stat-info"><div class="stat-label">今日得標廠商</div><div class="stat-num" id="s-vendor">—</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-red">⚠️</div><div class="stat-info"><div class="stat-label">今日無法決標</div><div class="stat-num" id="s-noaward">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-blue">📋</div><div class="stat-info"><div class="stat-label" id="sl-tender">今日招標</div><div class="stat-num" id="s-tender">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">✅</div><div class="stat-info"><div class="stat-label" id="sl-award">今日決標</div><div class="stat-num" id="s-award">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-amber">🏢</div><div class="stat-info"><div class="stat-label" id="sl-vendor">今日得標廠商</div><div class="stat-num" id="s-vendor">—</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-red">⚠️</div><div class="stat-info"><div class="stat-label" id="sl-noaward">今日無法決標</div><div class="stat-num" id="s-noaward">—</div></div></div>
       </div>
       <div class="week-grid">
         <div class="week-card">
-          <div class="week-card-header"><div class="week-dot wd-green"></div><div class="wc-title">本週最新招標</div><div class="wc-count" id="wc-tender">—</div></div>
+          <div class="week-card-header"><div class="week-dot wd-green"></div><div class="wc-title" id="wc-tender-title">本週最新招標</div><div class="wc-count" id="wc-tender">—</div></div>
           <div class="week-list" id="wl-tender"><div class="loading-overlay"><div class="spinner"></div></div></div>
         </div>
         <div class="week-card">
-          <div class="week-card-header"><div class="week-dot wd-blue"></div><div class="wc-title">本週最新決標</div><div class="wc-count" id="wc-award">—</div></div>
+          <div class="week-card-header"><div class="week-dot wd-blue"></div><div class="wc-title" id="wc-award-title">本週最新決標</div><div class="wc-count" id="wc-award">—</div></div>
           <div class="week-list" id="wl-award"><div class="loading-overlay"><div class="spinner"></div></div></div>
         </div>
         <div class="week-card">
@@ -602,12 +603,12 @@ async function loadDashboard(){
 
     // 更新 stat card 標題（如果不是今天，顯示日期）
     if(!isToday){
-      document.querySelectorAll('.stat-label').forEach((el,i)=>{
-        const labels=[`${dateLabel} 招標`,`${dateLabel} 決標`,`${dateLabel} 得標廠商`,`${dateLabel} 無法決標`];
-        if(labels[i]) el.textContent=labels[i];
-      });
-      document.getElementById('wc-tender').previousElementSibling.previousElementSibling.textContent=`${dateLabel}最新招標`;
-      document.getElementById('wc-award').previousElementSibling.previousElementSibling.textContent=`${dateLabel}最新決標`;
+      document.getElementById('sl-tender').textContent=`${dateLabel} 招標`;
+      document.getElementById('sl-award').textContent=`${dateLabel} 決標`;
+      document.getElementById('sl-vendor').textContent=`${dateLabel} 得標廠商`;
+      document.getElementById('sl-noaward').textContent=`${dateLabel} 無法決標`;
+      document.getElementById('wc-tender-title').textContent=`${dateLabel}最新招標`;
+      document.getElementById('wc-award-title').textContent=`${dateLabel}最新決標`;
     }
 
     document.getElementById('s-tender').textContent=tender.length.toLocaleString();
