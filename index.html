@@ -263,6 +263,29 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
 .toast{position:fixed;bottom:18px;right:18px;background:var(--gray-900);color:white;padding:9px 14px;border-radius:6px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;}
 .toast.show{opacity:1;}
 
+/* ── Sidebar notification badge ── */
+.sb-badge{position:absolute;top:5px;right:5px;min-width:14px;height:14px;background:var(--red);border-radius:7px;font-size:9px;font-weight:700;color:white;display:none;align-items:center;justify-content:center;padding:0 2px;line-height:1;}
+.sb-badge.show{display:flex;}
+
+/* ====== WATCHLIST PAGE ====== */
+.wl-add-bar{display:flex;gap:8px;margin-bottom:16px;}
+.wl-add-input{flex:1;padding:9px 14px;border:1px solid var(--gray-200);border-radius:var(--radius);font-size:13px;font-family:inherit;outline:none;color:var(--gray-900);}
+.wl-add-input:focus{border-color:var(--blue);}
+.wl-add-btn{padding:9px 20px;background:var(--blue);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+.wl-section-title{font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.wl-keyword-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.wl-kw-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--blue-dim);border:1px solid #C7DCFF;border-radius:20px;font-size:12px;font-weight:600;color:var(--blue);}
+.wl-kw-del{background:none;border:none;cursor:pointer;color:var(--blue-light);font-size:14px;line-height:1;padding:0;display:flex;align-items:center;}
+.wl-kw-del:hover{color:var(--red);}
+.wl-empty-kw{font-size:13px;color:var(--gray-400);padding:8px 0;}
+.wl-matches-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.wl-matches-title{font-size:15px;font-weight:700;color:var(--gray-900);}
+.wl-match-count{font-size:13px;font-weight:700;color:var(--red);}
+.wl-match-date{font-size:12px;color:var(--gray-500);}
+.wl-match-kw{display:inline-flex;padding:2px 8px;background:var(--amber-dim);border-radius:12px;font-size:10px;font-weight:700;color:var(--amber);margin-left:4px;}
+.wl-no-match{text-align:center;padding:40px 20px;color:var(--gray-400);}
+.wl-no-match .ei{font-size:36px;margin-bottom:10px;}
+
 @media(max-width:900px){
   .stat-grid{grid-template-columns:repeat(2,1fr);}
   .week-grid{grid-template-columns:1fr;}
@@ -284,6 +307,8 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
   <div class="sb-divider"></div>
   <button class="sb-btn" data-page="reserve"><span class="sb-icon">💰</span><span class="sb-label">底價</span></button>
   <button class="sb-btn" data-page="vendor"><span class="sb-icon">🏢</span><span class="sb-label">廠商</span></button>
+  <div class="sb-divider"></div>
+  <button class="sb-btn" data-page="watchlist" id="sb-watchlist"><span class="sb-icon">🔔</span><span class="sb-label">追蹤</span><span class="sb-badge" id="wl-badge"></span></button>
 </nav>
 
 <!-- Main Area -->
@@ -436,6 +461,27 @@ body{font-family:'Inter',-apple-system,'Microsoft JhengHei',sans-serif;backgroun
       <div id="reserveResult"></div>
     </div>
 
+    <!-- ═══ WATCHLIST PAGE ═══ -->
+    <div class="page" id="page-watchlist">
+      <div class="dash-banner" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);margin-bottom:20px">
+        <div class="dash-banner-text">
+          <h2>🔔 關鍵字追蹤</h2>
+          <p>設定追蹤關鍵字，每日自動掃描符合的最新標案</p>
+          <p>資料來源：每日最新標案（招標＋決標），即時比對</p>
+        </div>
+      </div>
+      <div style="background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:20px;margin-bottom:20px">
+        <div class="wl-section-title">新增追蹤關鍵字</div>
+        <div class="wl-add-bar">
+          <input class="wl-add-input" id="wlInput" type="text" placeholder="輸入關鍵字（如：AI、資安、醫療設備、台大醫院）">
+          <button class="wl-add-btn" onclick="addWatchKeyword()">＋ 新增</button>
+        </div>
+        <div class="wl-section-title">目前追蹤清單</div>
+        <div class="wl-keyword-list" id="wlKeywordList"></div>
+      </div>
+      <div id="wlMatchSection"></div>
+    </div>
+
     <!-- ═══ VENDOR PAGE ═══ -->
     <div class="page" id="page-vendor">
       <div class="analysis-search-bar">
@@ -541,10 +587,11 @@ function switchPage(page){
   document.getElementById(`page-${page}`)?.classList.add('active');
   document.querySelector(`.sb-btn[data-page="${page}"]`)?.classList.add('active');
   S.activePage=page;
-  const titles={dashboard:'總覽儀表板',tender:'招標',award:'決標',reserve:'底價分析',vendor:'廠商分析'};
+  const titles={dashboard:'總覽儀表板',tender:'招標',award:'決標',reserve:'底價分析',vendor:'廠商分析',watchlist:'關鍵字追蹤'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   if(page==='tender'&&!S.tender.records.length)loadListPage('tender');
   if(page==='award'&&!S.award.records.length)loadListPage('award');
+  if(page==='watchlist'){renderWatchlistKeywords();renderWatchlistMatches();}
 }
 
 // Top search
@@ -622,6 +669,10 @@ async function loadDashboard(){
     renderWeekList('wl-tender',tender.slice(0,12),'tender');
     renderWeekList('wl-award',award.slice(0,12),'award');
     renderVendorList('wl-vendor',[...vendors].slice(0,15),award);
+
+    // Watchlist scan against today's full records
+    const scanLabel=`${dataDateObj.getFullYear()}/${String(dataDateObj.getMonth()+1).padStart(2,'0')}/${String(dataDateObj.getDate()).padStart(2,'0')}`;
+    scanWatchlist(records,scanLabel);
   }catch(e){
     document.getElementById('wl-tender').innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${esc(e.message)}</p></div>`;
   }
@@ -747,8 +798,8 @@ function renderTable(type,page){
 
   const isAward=type==='award';
   const headers=isAward
-    ?['#','採購機關','案名','招標採','決標採','分類','決標金額','底價','公告']
-    :['#','採購機關','案名','招標採','決標採','分類','預算','截止','公告'];
+    ?['#','採購機關','案名','招標採','決標採','分類','決標金額','底價','公告','']
+    :['#','採購機關','案名','招標採','決標採','分類','預算','截止','公告',''];
 
   const tableHtml=`<table class="tender-table">
     <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
@@ -776,6 +827,7 @@ function renderTable(type,page){
         <td class="${isAward?'td-award-amount':'td-budget'}">${isAward?(compStr?compStr.split('、')[0].slice(0,8)+'…':'—'):(budget?esc(budget):'—')}</td>
         <td class="td-deadline">${isAward?(r.brief?.awardDate||fmtDate(r.date).slice(5)):(deadline||'—')}</td>
         <td style="font-size:11px;color:var(--gray-500)">${fmtDate(r.date).slice(5)}</td>
+        <td><button onclick="quickOpenPcc('${esc(r.tender_api_url)}')" title="開啟政府採購網" style="background:none;border:1px solid var(--gray-200);border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;color:var(--blue);white-space:nowrap" onmouseover="this.style.background='var(--blue-dim)'" onmouseout="this.style.background='none'">↗ 領標</button></td>
       </tr>`;
     }).join('')}</tbody>
   </table>`;
@@ -1352,13 +1404,138 @@ function renderModal(records){
 function closeModal(){document.getElementById('modalOverlay').style.display='none';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
+// ═══ QUICK OPEN PCC ═══
+async function quickOpenPcc(apiUrl){
+  toast('正在取得政府採購網連結...');
+  try{
+    const res=await fetch(apiUrl);
+    const data=await res.json();
+    const rec=data.records?.[0];
+    const pccUrl=rec?.detail?dv(rec.detail,'url'):'';
+    const noticeUrl=rec?.detail?dv(rec.detail,'領投開標:是否提供電子領標:投標須知下載'):'';
+    if(pccUrl){window.open(pccUrl,'_blank','noopener');}
+    else if(noticeUrl){window.open(noticeUrl,'_blank','noopener');}
+    else{toast('此標案無法取得原始連結，請點案名開啟詳情');openDetailByUrl(apiUrl,'');}
+  }catch(e){toast('取得連結失敗，請重試');}
+}
+
+// ═══ WATCHLIST ═══
+const WL_KEY='tw_watchlist_kw';
+const WL={keywords:[],matches:[],lastScanDate:''};
+
+function wlLoad(){
+  try{WL.keywords=JSON.parse(localStorage.getItem(WL_KEY)||'[]');}catch{WL.keywords=[];}
+}
+function wlSave(){
+  localStorage.setItem(WL_KEY,JSON.stringify(WL.keywords));
+}
+
+function addWatchKeyword(kw){
+  const input=document.getElementById('wlInput');
+  const val=(kw||input.value).trim();
+  if(!val){toast('請輸入關鍵字');return;}
+  if(WL.keywords.includes(val)){toast('已有此關鍵字');return;}
+  if(WL.keywords.length>=20){toast('最多可追蹤 20 個關鍵字');return;}
+  WL.keywords.push(val);
+  wlSave();
+  input.value='';
+  renderWatchlistKeywords();
+  if(WL.matches.length||WL.lastScanDate)renderWatchlistMatches();
+  toast(`已新增追蹤：${val}`);
+}
+
+function removeWatchKeyword(kw){
+  WL.keywords=WL.keywords.filter(k=>k!==kw);
+  wlSave();
+  renderWatchlistKeywords();
+  if(WL.matches.length||WL.lastScanDate)renderWatchlistMatches();
+}
+
+function renderWatchlistKeywords(){
+  const el=document.getElementById('wlKeywordList');
+  if(!el)return;
+  if(!WL.keywords.length){
+    el.innerHTML=`<div class="wl-empty-kw">尚未新增任何關鍵字。建議輸入您關心的採購類型、機關名稱或標案關鍵詞。</div>`;
+    return;
+  }
+  el.innerHTML=WL.keywords.map(kw=>`
+    <span class="wl-kw-tag">
+      ${esc(kw)}
+      <button class="wl-kw-del" onclick="removeWatchKeyword('${esc(kw)}')" title="移除">✕</button>
+    </span>`).join('');
+}
+
+function renderWatchlistMatches(){
+  const el=document.getElementById('wlMatchSection');
+  if(!el)return;
+  if(!WL.keywords.length){
+    el.innerHTML=`<div class="wl-no-match"><div class="ei">🔔</div><h3 style="color:var(--gray-500);font-size:14px">請先新增追蹤關鍵字</h3></div>`;
+    return;
+  }
+  if(!WL.lastScanDate){
+    el.innerHTML=`<div class="wl-no-match"><div class="ei">⏳</div><h3 style="color:var(--gray-500);font-size:14px">資料載入中，請稍候...</h3></div>`;
+    return;
+  }
+  const matches=WL.matches;
+  el.innerHTML=`
+    <div class="wl-matches-header">
+      <div class="wl-matches-title">今日符合標案</div>
+      ${matches.length?`<div class="wl-match-count">${matches.length} 筆</div>`:''}
+      <div class="wl-match-date">掃描日期：${WL.lastScanDate}</div>
+    </div>
+    ${!matches.length?`<div class="wl-no-match"><div class="ei">🔍</div><h3 style="color:var(--gray-500);font-size:14px">今日暫無符合追蹤關鍵字的標案</h3><p style="font-size:12px">明天繼續追蹤</p></div>`:`
+    <table class="tender-table">
+      <thead><tr><th>採購機關</th><th>案名</th><th>符合關鍵字</th><th>類型</th><th>公告日</th><th>領標</th></tr></thead>
+      <tbody>${matches.map(m=>{
+        const {badge}=getTypeInfo(m.type||'');
+        return`<tr>
+          <td><div class="td-unit">${esc((m.unit||'').slice(0,14))}</div></td>
+          <td style="max-width:240px"><div class="td-title" onclick="openDetailByUrl('${esc(m.url)}','${esc(m.title)}')">${esc(m.title)}</div></td>
+          <td>${m.keywords.map(k=>`<span class="wl-match-kw">${esc(k)}</span>`).join(' ')}</td>
+          <td><span class="td-method-badge ${badge}">${esc(m.type||'').slice(0,5)}</span></td>
+          <td style="font-size:11px;color:var(--gray-500)">${esc(m.date)}</td>
+          <td><button class="modal-link" style="padding:4px 10px;font-size:11px;border:none;cursor:pointer" onclick="openDetailByUrl('${esc(m.url)}','${esc(m.title)}')">↗ 查看領標</button></td>
+        </tr>`;}).join('')}
+      </tbody>
+    </table>`}`;
+}
+
+function updateWatchlistBadge(){
+  const badge=document.getElementById('wl-badge');
+  if(!badge)return;
+  const cnt=WL.matches.length;
+  if(cnt>0){badge.textContent=cnt>9?'9+':cnt;badge.classList.add('show');}
+  else badge.classList.remove('show');
+}
+
+function scanWatchlist(allRecords,dateLabel){
+  if(!WL.keywords.length){WL.matches=[];updateWatchlistBadge();renderWatchlistMatches();return;}
+  WL.lastScanDate=dateLabel;
+  const matched=[];
+  allRecords.forEach(r=>{
+    const title=r.brief?.title||'';
+    const unit=r.unit_name||'';
+    const type=r.brief?.type||'';
+    const companies=(r.brief?.companies?.names||[]).join(' ');
+    const fullText=(title+' '+unit+' '+companies).toLowerCase();
+    const hitKws=WL.keywords.filter(kw=>fullText.includes(kw.toLowerCase()));
+    if(!hitKws.length)return;
+    matched.push({title,unit,type,date:fmtDate(r.date),url:r.tender_api_url,keywords:hitKws,pccUrl:''});
+  });
+  WL.matches=matched;
+  updateWatchlistBadge();
+  renderWatchlistMatches();
+}
+
 // ═══ INIT ═══
 (function init(){
+  wlLoad();
   initReservePage();
   initVendorPage();
   loadDashboard();
   document.getElementById('reserveSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doReserveSearch();});
   document.getElementById('vendorSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doVendorSearch();});
+  document.getElementById('wlInput').addEventListener('keydown',e=>{if(e.key==='Enter')addWatchKeyword();});
 })();
 </script>
 </body>
