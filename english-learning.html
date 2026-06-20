@@ -690,11 +690,36 @@ function saveState() {
 // ═══════════════════════════════════════
 //  SPEECH SYNTHESIS
 // ═══════════════════════════════════════
-function speak(text, rate=0.85) {
+let _voices = [];
+function _loadVoices() { _voices = window.speechSynthesis?.getVoices() || []; }
+if (window.speechSynthesis) {
+  _loadVoices();
+  window.speechSynthesis.onvoiceschanged = _loadVoices;
+}
+
+function _getBestVoice() {
+  const preferred = [
+    'Google US English','Samantha','Karen','Moira',
+    'Microsoft Zira Desktop','Microsoft David Desktop',
+    'Microsoft Jenny Online','Microsoft Guy Online',
+    'Alex','Victoria','Daniel',
+  ];
+  for (const name of preferred) {
+    const v = _voices.find(v => v.name === name);
+    if (v) return v;
+  }
+  return _voices.find(v => v.lang === 'en-US')
+      || _voices.find(v => v.lang.startsWith('en'))
+      || null;
+}
+
+function speak(text, rate=0.9) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US'; u.rate = rate; u.pitch = 1;
+  const v = _getBestVoice();
+  if (v) u.voice = v;
   window.speechSynthesis.speak(u);
 }
 
